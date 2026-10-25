@@ -113,6 +113,15 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
                 <span className="text-sm font-medium text-slate-300">Se merece, no se compra</span>
               </div>
             </div>
+
+            {/* Manifiesto / cita del fundador */}
+            <blockquote className="mx-auto mt-12 max-w-3xl rounded-2xl border-l-4 border-orange-500 bg-gradient-to-br from-orange-500/10 via-red-600/5 to-transparent px-6 py-6 text-left shadow-lg shadow-orange-500/5 backdrop-blur sm:px-8 sm:py-8">
+              <span className="block text-4xl leading-none text-orange-400/60" aria-hidden="true">&ldquo;</span>
+              <p className="-mt-3 text-sm font-bold uppercase tracking-wide text-orange-200 sm:text-base md:text-lg leading-relaxed">
+                Viví el corazón de las grandes corporaciones y presencié cómo el tiempo y el talento de las personas se trataban como recursos desechables. Entendí que el modelo actual de gestión de personas está roto. De esa frustración y rabia, nace <span className="text-white">KULTUREMATRIX</span>, para ofrecer una solución tecnológica justa, humana y valiente, que cuide el mayor valor corporativo, las personas.
+              </p>
+              <span className="mt-3 block text-4xl leading-none text-right text-orange-400/60" aria-hidden="true">&rdquo;</span>
+            </blockquote>
           </div>
         </div>
       </div>
