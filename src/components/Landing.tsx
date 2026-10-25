@@ -355,7 +355,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
           </div>
 
           {/* Pricing cards */}
-          <div className="mt-14 grid gap-6 lg:grid-cols-3 lg:gap-8">
+          <div className="mt-16 grid gap-8 lg:grid-cols-3 lg:gap-8">
             {/* Plan Crecimiento (PYME) */}
             <PricingCard
               name="Plan Crecimiento"
@@ -753,15 +753,15 @@ function PricingCard({
     >
       {/* Featured ribbon */}
       {featured && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-          <span className="rounded-full bg-gradient-to-r from-[#205072] to-[#43B59C] px-5 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg">
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-2">
+          <span className="block whitespace-nowrap rounded-full bg-gradient-to-r from-[#205072] to-[#43B59C] px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider leading-normal text-white shadow-lg sm:text-xs sm:px-5">
             El Más Popular / Recomendado
           </span>
         </div>
       )}
 
       {/* Header */}
-      <div className="text-center">
+      <div className={`text-center ${featured ? 'pt-3' : ''}`}>
         <p className={`text-xs font-bold uppercase tracking-widest ${featured ? 'text-[#43B59C]' : 'text-slate-400'}`}>
           {tier}
         </p>
