@@ -7,7 +7,7 @@ import {
   ArrowLeft, Download, AlertTriangle, Lightbulb, TrendingUp,
   Users, Clock, Brain, Trophy, Loader2, BarChart3, ShieldAlert,
   ShieldCheck, Ban, Scale, Target, Sparkles, ChevronRight, Rocket,
-  CheckCircle2,
+  CheckCircle2, Mail,
 } from 'lucide-react';
 import { BLOCKS, ACTION_PLANS } from '@/lib/questions';
 import { getEmpresaBlockScores, getDeptScores, getNotaColor, CERTIFICATE_THRESHOLD } from '@/lib/scoring';
@@ -235,17 +235,17 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
               <div className="grid grid-cols-3 gap-4">
                 <div className="rounded-2xl border border-slate-200 bg-white p-5">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
-                    <Users className="h-5 w-5 text-slate-600" />
+                    <Mail className="h-5 w-5 text-slate-600" />
                   </div>
                   <p className="mt-3 text-3xl font-bold text-slate-900">{trabStats.total}</p>
-                  <p className="text-xs text-slate-500">Trabajadores registrados</p>
+                  <p className="text-xs text-slate-500">Enviados</p>
                 </div>
                 <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100">
                     <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                   </div>
                   <p className="mt-3 text-3xl font-bold text-emerald-700">{trabStats.completados}</p>
-                  <p className="text-xs text-emerald-600">Completados</p>
+                  <p className="text-xs text-emerald-600">Realizados</p>
                 </div>
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100">
