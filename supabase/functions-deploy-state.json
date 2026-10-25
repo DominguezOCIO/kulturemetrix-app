@@ -1,0 +1,25 @@
+{
+  "projectId": "72226764",
+  "functions": {
+    "company-auth-setup": {
+      "hasChanged": false,
+      "hash": "3a2a017b133e2e8f592a388d484bcea5ee81f1260a1801acce6ca85ab7287fff"
+    },
+    "company-login": {
+      "hasChanged": false,
+      "hash": "99d54ff0e7ccb6bd58f5a6b512cc9f90c0219822973f5f8a54594627d9b82c08"
+    },
+    "send-audit-notification": {
+      "hasChanged": false,
+      "hash": "9f01aa731511be1c687ed9354c87a3eceb744f0da8c5964385518b5fee9d7ca7"
+    },
+    "send-campaign": {
+      "hasChanged": false,
+      "hash": "3ea0f615eccca784aab939dc5f2fa03f279dd2898cb3ccfb85e663bf7a4d4f5c"
+    },
+    "validate-token": {
+      "hasChanged": false,
+      "hash": "90812eb70304b69ed72fb63d9621546d5ec2fe151b66bf9df1582f690d2d807b"
+    }
+  }
+}

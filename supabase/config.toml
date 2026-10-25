@@ -1,0 +1,14 @@
+[functions.send-campaign]
+verify_jwt = true
+
+[functions.validate-token]
+verify_jwt = false
+
+[functions.company-auth-setup]
+verify_jwt = true
+
+[functions.company-login]
+verify_jwt = false
+
+[functions.send-audit-notification]
+verify_jwt = false
