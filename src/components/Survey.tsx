@@ -136,8 +136,8 @@ export function Survey({ empresa, token, onComplete, onBack, departamentoPresele
 
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
             <h2 className="text-xl font-bold text-slate-900">Antes de empezar</h2>
-            <p className="mt-2 text-sm text-slate-500">
-              Indica tu departamento. Esta información se usa solo para segmentar resultados agregados. <span className="font-medium text-slate-700">Tus respuestas son 100% anónimas</span> y no se almacenan de forma individual.
+            <p className="mt-3 text-sm leading-relaxed text-slate-600">
+              Tómate 10 min para realizar este cuestionario, <span className="font-semibold text-slate-800">¡no es un examen, es algo muy favorable para poder mejorar tu propio bienestar laboral!</span> Ahora te toca a ti evaluar a tu empresa. <span className="font-bold uppercase tracking-wide text-slate-800">Recuerda:</span> tus respuestas son <span className="font-semibold text-slate-800">100% anónimas</span> y no se almacenan de forma individual. Por ello, esperamos que seas <span className="font-bold text-slate-800">HONESTO, SINCERO Y JUSTO</span>.
             </p>
 
             {/* Privacy banner */}
@@ -148,31 +148,29 @@ export function Survey({ empresa, token, onComplete, onBack, departamentoPresele
               </p>
             </div>
 
-            <div className="mt-6">
-              <label htmlFor="dept" className="block text-sm font-medium text-slate-700">Departamento</label>
-              {departamentoPreselected ? (
+            {/* Empresa y Departamento — asignados automáticamente */}
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Empresa</label>
                 <div className="mt-2 flex items-center gap-2 rounded-lg border border-[#43B59C]/30 bg-[#43B59C]/5 px-4 py-3">
                   <ShieldCheck className="h-4 w-4 text-[#43B59C]" />
-                  <span className="text-sm font-medium text-slate-700">{departamentoPreselected}</span>
+                  <span className="text-sm font-medium text-slate-700">{empresa.nombre}</span>
                   <span className="ml-auto text-xs text-slate-400">Asignado automáticamente</span>
                 </div>
-              ) : (
-                <input
-                  id="dept"
-                  type="text"
-                  value={departamento}
-                  onChange={(e) => setDepartamento(e.target.value)}
-                  placeholder="Ej. Ventas, Tecnología, RRHH…"
-                  className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 transition"
-                  onKeyDown={(e) => { if (e.key === 'Enter' && departamento.trim()) setStep(1); }}
-                />
-              )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Departamento</label>
+                <div className="mt-2 flex items-center gap-2 rounded-lg border border-[#43B59C]/30 bg-[#43B59C]/5 px-4 py-3">
+                  <ShieldCheck className="h-4 w-4 text-[#43B59C]" />
+                  <span className="text-sm font-medium text-slate-700">{departamentoPreselected || departamento || 'General'}</span>
+                  <span className="ml-auto text-xs text-slate-400">Asignado automáticamente</span>
+                </div>
+              </div>
             </div>
 
             <button
-              onClick={() => departamento.trim() && setStep(1)}
-              disabled={!departamento.trim()}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 px-4 py-3 font-semibold text-white shadow-lg shadow-orange-500/20 transition hover:from-orange-400 hover:to-red-500 disabled:opacity-50"
+              onClick={() => setStep(1)}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 px-4 py-3 font-semibold text-white shadow-lg shadow-orange-500/20 transition hover:from-orange-400 hover:to-red-500"
             >
               Comenzar encuesta
               <ArrowRight className="h-4 w-4" />
