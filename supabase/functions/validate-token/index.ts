@@ -27,7 +27,7 @@ Deno.serve(async (req: Request) => {
 
     // Look up the access_code in invitaciones — do NOT mark as used here.
     // The submit_survey_anonymous function handles the atomic claim during submission.
-    const { data: invitacion, error: queryError } = await supabase
+    let { data: invitacion, error: queryError } = await supabase
       .from("invitaciones")
       .select(`
         id,
@@ -39,6 +39,35 @@ Deno.serve(async (req: Request) => {
       `)
       .eq("access_code", token)
       .maybeSingle();
+
+    // If not found as a long access_code, try the short KM-XXXXXX code from trabajadores
+    if (!invitacion && !queryError) {
+      const { data: trab, error: trabError } = await supabase
+        .from("trabajadores")
+        .select("email, empresa_id")
+        .eq("codigo_acceso", token)
+        .maybeSingle();
+
+      if (!trabError && trab) {
+        const { data: invByShort, error: invError } = await supabase
+          .from("invitaciones")
+          .select(`
+            id,
+            empresa_id,
+            departamento_id,
+            has_completed,
+            empresas!inner(id, nombre, api_key, estado_suscripcion, nota_global),
+            departamentos!left(id, nombre)
+          `)
+          .eq("empresa_id", trab.empresa_id)
+          .eq("email", trab.email)
+          .maybeSingle();
+        if (!invError && invByShort) {
+          invitacion = invByShort;
+          queryError = null;
+        }
+      }
+    }
 
     if (queryError || !invitacion) {
       return new Response(
