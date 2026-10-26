@@ -189,7 +189,7 @@ export function Survey({ empresa, token, onComplete, onBack, departamentoPresele
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
             <h2 className="text-xl font-bold text-slate-900">Antes de empezar</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-600">
-              Tómate 10 min para realizar este cuestionario, <span className="font-semibold text-slate-800">¡no es un examen, es algo muy favorable para poder mejorar tu propio bienestar laboral!</span> Ahora te toca a ti evaluar a tu empresa. <span className="font-bold uppercase tracking-wide text-slate-800">Recuerda:</span> tus respuestas son <span className="font-semibold text-slate-800">100% anónimas</span> y no se almacenan de forma individual. Por ello, esperamos que seas <span className="font-bold text-slate-800">HONESTO, SINCERO Y JUSTO</span>.
+              Tómate 10 min para realizar este cuestionario, <span className="font-semibold text-slate-800">¡no es un examen, es algo muy favorable para poder cuidar tu propio bienestar laboral!</span> Ahora te toca a ti evaluar a tu empresa. <span className="font-bold uppercase tracking-wide text-slate-800">Recuerda:</span> tus respuestas son <span className="font-semibold text-slate-800">100% anónimas</span> y no se almacenan de forma individual. Por ello, necesitamos que seas <span className="font-bold text-slate-800">HONESTO, SINCERO Y JUSTO</span>.
             </p>
 
             {/* Privacy banner */}
