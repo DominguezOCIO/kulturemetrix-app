@@ -150,7 +150,8 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
     return deptData[0].contador >= 5;
   }, [selectedDept, deptScores]);
 
-  const notaGlobal = empresa.nota_global;
+  const allCompleted = trabStats.total > 0 && trabStats.completados >= trabStats.total;
+  const notaGlobal = allCompleted ? empresa.nota_global : 0;
   const notaInfo = getNotaColor(notaGlobal);
   const isCertified = notaGlobal >= CERTIFICATE_THRESHOLD;
 
@@ -209,9 +210,9 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                 <span className="font-bold text-slate-900">{empresa.nombre}</span>
               </div>
             </div>
-            <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${isCertified ? 'bg-emerald-500 text-white' : notaGlobal > 0 ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-700'}`}>
+            <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${isCertified ? 'bg-emerald-500 text-white' : allCompleted && notaGlobal > 0 ? 'bg-red-500 text-white' : 'bg-amber-400 text-white'}`}>
               <span className="h-2 w-2 rounded-full bg-white/80" />
-              {isCertified ? 'CERTIFICADA' : notaGlobal > 0 ? 'FALLIDA' : 'AUDITANDO'}
+              {isCertified ? 'CERTIFICADA' : allCompleted && notaGlobal > 0 ? 'FALLIDA' : 'AUDITANDO'}
             </div>
           </div>
         </div>
@@ -239,6 +240,29 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
             <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-red-50 sm:text-lg">
               Tu equipo humano necesita que mejores algunos apartados en tu corporación, para poder alcanzar un entorno óptimo y favorable en bienestar laboral. Te dejamos unas ideas de planes de acción, generadas según las métricas de la auditoría, y te animamos a ponerlas en marcha. Y en 12 meses volvemos a tomar el pulso a tu valor más preciado, el humano.
             </p>
+          </div>
+        )}
+        {!allCompleted && trabStats.total > 0 && (
+          <div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 p-8 text-center shadow-xl shadow-amber-500/20">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur">
+              <Clock className="h-8 w-8 text-white" />
+            </div>
+            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">AUDITANDO — ENCUESTAS EN CURSO</h2>
+            <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-amber-50 sm:text-lg">
+              Tu auditoría aún está en proceso. Hasta que <strong className="font-bold text-white">todas las personas invitadas completen la encuesta</strong> ({trabStats.completados} de {trabStats.total}), no se emitirá el resultado final. Esto garantiza que la métrica refleje de forma real el conjunto completo de la plantilla.
+            </p>
+            <div className="mx-auto mt-6 max-w-md">
+              <div className="flex items-center justify-between text-xs font-medium text-amber-50">
+                <span>Progreso de participación</span>
+                <span>{trabStats.completados} / {trabStats.total} ({trabStats.participacion}%)</span>
+              </div>
+              <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/30">
+                <div
+                  className="h-full rounded-full bg-white transition-all duration-1000"
+                  style={{ width: `${trabStats.participacion}%` }}
+                />
+              </div>
+            </div>
           </div>
         )}
 
@@ -367,7 +391,7 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                     Descargar Certificado Oficial de Bienestar Corporativo KULTUREMETRIX
                   </button>
                 </div>
-              ) : (
+              ) : allCompleted && notaGlobal > 0 ? (
                 <div className="rounded-xl border-2 border-slate-200 bg-white p-6">
                   <div className="flex items-center gap-3">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-red-600 shadow-lg shadow-orange-500/20">
@@ -376,7 +400,7 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                     <div>
                       <h3 className="text-lg font-bold text-slate-900">Aún no alcanzas la certificación</h3>
                       <p className="text-sm text-slate-500">
-                        Tu puntuación actual es de <span className="font-bold text-slate-700">{notaGlobal.toFixed(1)} / 100</span>.
+                        Tu puntuación final es de <span className="font-bold text-slate-700">{notaGlobal.toFixed(1)} / 100</span>.
                         Necesitas al menos <span className="font-bold text-emerald-600">{CERTIFICATE_THRESHOLD} puntos</span> para obtener el Certificado Oficial de Bienestar Corporativo.
                       </p>
                     </div>
@@ -401,6 +425,36 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                     </div>
                   </div>
 
+                </div>
+              ) : (
+                <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-lg shadow-amber-500/20">
+                      <Clock className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900">Auditoría en curso</h3>
+                      <p className="text-sm text-slate-600">
+                        {trabStats.total > 0
+                          ? <>Faltan <strong className="text-slate-800">{trabStats.pendientes}</strong> personas por completar la encuesta de un total de <strong className="text-slate-800">{trabStats.total}</strong>. El resultado final se emitirá cuando todos hayan respondido.</>
+                          : 'Aún no se han enviado invitaciones a los trabajadores.'}
+                      </p>
+                    </div>
+                  </div>
+                  {trabStats.total > 0 && (
+                    <div className="mt-5">
+                      <div className="flex items-center justify-between text-xs font-medium text-amber-700">
+                        <span>Participación actual</span>
+                        <span>{trabStats.completados} / {trabStats.total} ({trabStats.participacion}%)</span>
+                      </div>
+                      <div className="mt-2 h-3 overflow-hidden rounded-full bg-amber-100">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000"
+                          style={{ width: `${trabStats.participacion}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
