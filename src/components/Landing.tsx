@@ -13,9 +13,9 @@ interface LandingProps {
 }
 
 export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }: LandingProps) {
-  const [loginEmail, setLoginEmail] = useState('demo@kulturemetrix.com');
-  const [loginPassword, setLoginPassword] = useState('DemoCorp2026!');
-  const [workerCode, setWorkerCode] = useState('kLetX8Cp-T0tKGFbK-iLaXHSTz-7D5vBW9v');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [workerCode, setWorkerCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [accessMode, setAccessMode] = useState<'empresa' | 'trabajador'>('empresa');
