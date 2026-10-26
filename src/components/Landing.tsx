@@ -643,8 +643,12 @@ const FAQ_SECTIONS = [
         answer: 'Es un distintivo oficial de calidad emitido por nuestra entidad externa que avala que una empresa cumple con estándares óptimos de salud organizacional y bienestar humano tras superar la auditoría correspondiente.',
       },
       {
-        question: '¿Cómo y dónde se pueden descargar los certificados obtenidos?',
-        answer: 'Una vez completado el proceso de validación, los administradores pueden acceder a la sección privada de descargas dentro de la plataforma para obtener sus certificados oficiales en formato PDF de alta resolución.',
+        question: '¿Cómo se obtiene el certificado?',
+        answer: 'Una vez acabada la auditoría con las respuestas recibidas de manera anónima de todos los test por parte de tu equipo, y obteniendo la puntuación de 70/100 en adelante. Se requiere ser una empresa notable cuidando el bienestar corporativo.',
+      },
+      {
+        question: '¿Qué pasa si mi empresa no obtiene la puntuación necesaria?',
+        answer: 'Se quedará la auditoría fallida, pero no te preocupes, todo quedará en el anonimato, y obtendrás consejos de planes de acción a implementar para poder mejorar las áreas que tu propio equipo te pide mejorar. Y pasados 12 meses siguientes, podrás volver a pasar nuestra auditoría.',
       },
       {
         question: '¿Por qué es importante contar con una auditoría externa en lugar de una interna?',
