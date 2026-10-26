@@ -6,7 +6,7 @@ import {
 import {
   ArrowLeft, Download, AlertTriangle, Lightbulb, TrendingUp,
   Users, Clock, Brain, Trophy, Loader2, BarChart3, ShieldAlert,
-  ShieldCheck, Ban, Scale, Target, Sparkles, ChevronRight, Rocket,
+  ShieldCheck, Ban, Scale, Target,
   CheckCircle2, Mail,
 } from 'lucide-react';
 import { BLOCKS, ACTION_PLANS } from '@/lib/questions';
@@ -401,28 +401,6 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                     </div>
                   </div>
 
-                  {/* Upsell CTA */}
-                  <div className="mt-5 rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50 to-red-50 p-5">
-                    <div className="flex items-start gap-3">
-                      <Sparkles className="h-5 w-5 flex-shrink-0 text-orange-600" />
-                      <div>
-                        <p className="font-semibold text-slate-800">¿Quieres alcanzar la certificación?</p>
-                        <p className="mt-1 text-sm text-slate-600">
-                          Contrata nuestra <strong>consultoría especializada</strong> o mejora a un plan <strong>PRO / ENTERPRISE</strong> para implementar planes de mejora guiados, auditorías continuas y volver a auditarte hasta conseguir el sello KultureMetrix.
-                        </p>
-                        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                          <button className="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-orange-400 hover:to-red-500">
-                            <Rocket className="h-4 w-4" />
-                            Hablar con un consultor
-                          </button>
-                          <button className="flex items-center justify-center gap-2 rounded-lg border border-orange-300 bg-white px-5 py-2.5 text-sm font-semibold text-orange-700 transition hover:bg-orange-50">
-                            Ver planes PRO / ENTERPRISE
-                            <ChevronRight className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
