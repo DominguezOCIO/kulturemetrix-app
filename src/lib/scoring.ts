@@ -28,7 +28,7 @@ export interface Empresa {
   nota_global: number; // sobre 100
 }
 
-export const CERTIFICATE_THRESHOLD = 85;
+export const CERTIFICATE_THRESHOLD = 70;
 
 export interface Block5Answers {
   block5Sum: number;
@@ -148,12 +148,11 @@ export function calculatePenalty(
   }
 
   let penalizacion = 0;
-  if (diferenciaPct > 30) {
-    // Supera 30%: resta 35% del valor total de la nota
-    penalizacion = notaCuantitativa * 0.35;
-  } else if (diferenciaPct >= 15) {
-    // 15%-30%: resta 15 puntos directos (equivalente a 1.5 sobre 10)
-    penalizacion = 15;
+  if (diferenciaPct > 15) {
+    // Penalización proporcional a la discrepancia.
+    // 15% de diferencia → 1 punto. 50% de diferencia → 5 puntos. Máximo 5 puntos.
+    // Esto permite dar feedback de mejora sin un "FALLIDA" directo.
+    penalizacion = Math.min(5, Math.max(0, (diferenciaPct - 15) / 7));
   }
 
   const notaFinal = Math.max(0, notaCuantitativa - penalizacion);

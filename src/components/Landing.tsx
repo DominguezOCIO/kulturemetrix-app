@@ -242,7 +242,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
           <div className="grid gap-6 sm:grid-cols-3">
             <FeatureRow icon={<BarChart3 className="h-5 w-5" />} title="Dashboard analítico" desc="KPIs en tiempo real por departamento y bloque temático." />
             <FeatureRow icon={<ShieldCheck className="h-5 w-5" />} title="Privacidad desde el diseño" desc="100% anónimo. Cumple RGPD. Sin datos individuales." />
-            <FeatureRow icon={<FileCheck className="h-5 w-5" />} title="Certificado de Bienestar" desc="Descarga un certificado verificable al alcanzar 85+ puntos sobre 100." />
+            <FeatureRow icon={<FileCheck className="h-5 w-5" />} title="Certificado de Bienestar" desc="Descarga un certificado verificable al alcanzar 70+ puntos sobre 100." />
           </div>
         </div>
       </div>
@@ -500,7 +500,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
               accent="cyan"
               title="Algoritmo de Incoherencias"
               number="03"
-              description="Un motor de cálculo evalúa la diferencia porcentual entre ambas notas. Una discrepancia del 15-30% resta 1.5 puntos directos; si supera el 30%, se penaliza con un 35% del valor total. Las notas nunca se inflan artificialmente."
+              description="Un motor de cálculo evalúa la diferencia porcentual entre ambas notas. A partir de un 15% de discrepancia se aplica una penalización proporcional de hasta 5 puntos, permitiendo dar feedback de mejora sin descalificar automáticamente. Las notas nunca se inflan artificialmente."
             />
 
             {/* Veto Crítico */}

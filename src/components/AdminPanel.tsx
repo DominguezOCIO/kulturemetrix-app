@@ -284,8 +284,8 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
   }, [empresas, statsCache]);
 
   const pieData = [
-    { name: 'Certificadas (≥85)', value: annualStats.totalCertificadas, color: '#059669' },
-    { name: 'No certificadas (<85)', value: annualStats.totalConEncuestas - annualStats.totalCertificadas, color: '#f59e0b' },
+    { name: 'Certificadas (≥70)', value: annualStats.totalCertificadas, color: '#059669' },
+    { name: 'No certificadas (<70)', value: annualStats.totalConEncuestas - annualStats.totalCertificadas, color: '#f59e0b' },
   ];
   const handleCopyKey = (key: string) => {
     navigator.clipboard.writeText(key);
@@ -442,7 +442,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
             <div className="space-y-4">
               <AnnualKpiRow icon={<Building2 className="h-5 w-5" />} label="Empresas dadas de alta" value={annualStats.totalAltas} color="text-slate-700 bg-slate-100" />
               <AnnualKpiRow icon={<Target className="h-5 w-5" />} label="Empresas que realizaron la auditoría" value={annualStats.totalConEncuestas} color="text-blue-700 bg-blue-100" />
-              <AnnualKpiRow icon={<Award className="h-5 w-5" />} label="Empresas certificadas (≥85 pts)" value={annualStats.totalCertificadas} color="text-emerald-700 bg-emerald-100" />
+              <AnnualKpiRow icon={<Award className="h-5 w-5" />} label="Empresas certificadas (≥70 pts)" value={annualStats.totalCertificadas} color="text-emerald-700 bg-emerald-100" />
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
