@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, Check, Loader2, AlertCircle, ShieldCheck, ShieldAlert } from 'lucide-react';
-import { QUESTIONS, BLOCKS, LIKERT_OPTIONS, pickRandomBlock5Questions, CLOSING_QUESTION, BLOCK5_QUESTION_COUNT, type Bank5Question } from '@/lib/questions';
+import { QUESTIONS, BLOCKS, LIKERT_OPTIONS, BLOCK5_BANK, pickRandomBlock5Questions, CLOSING_QUESTION, BLOCK5_QUESTION_COUNT, type Bank5Question } from '@/lib/questions';
 import { submitSurvey } from '@/lib/scoring';
 import { validateToken } from '@/lib/campaign';
 import type { Empresa } from '@/lib/scoring';
@@ -14,23 +14,75 @@ interface SurveyProps {
   departamentoPreselected?: string;
 }
 
-export function Survey({ empresa, token, onComplete, onBack, departamentoPreselected }: SurveyProps) {
-  const [step, setStep] = useState(0); // 0=dept, 1..20=blocks1-4, 21..25=block5 random, 26=closing, 27=done
-  const [departamento, setDepartamento] = useState(departamentoPreselected || '');
-  const [answers, setAnswers] = useState<Record<string, number>>({});
-  const [block5Answers, setBlock5Answers] = useState<Record<string, number>>({});
-  const [closingAnswer, setClosingAnswer] = useState<number | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+interface SavedProgress {
+  step: number;
+  answers: Record<string, number>;
+  block5Answers: Record<string, number>;
+  closingAnswer: number | null;
+  block5QuestionIds: string[];
+}
 
-  // Pick 5 random Block 5 questions once per survey
-  const block5Questions = useMemo(() => pickRandomBlock5Questions(BLOCK5_QUESTION_COUNT), []);
+export function Survey({ empresa, token, onComplete, onBack, departamentoPreselected }: SurveyProps) {
+  const progressKey = `km-survey-${token}`;
+
+  const [savedInit] = useState<SavedProgress | null>(() => {
+    try {
+      const raw = localStorage.getItem(progressKey);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as SavedProgress;
+      if (typeof parsed.step !== 'number') return null;
+      return parsed;
+    } catch {
+      return null;
+    }
+  });
+
+  // Restore the same Block 5 questions if resuming, otherwise pick fresh
+  const [block5Questions] = useState<Bank5Question[]>(() => {
+    if (savedInit?.block5QuestionIds?.length) {
+      const restored = savedInit.block5QuestionIds
+        .map((id) => BLOCK5_BANK.find((q) => q.id === id))
+        .filter((q): q is Bank5Question => q != null);
+      if (restored.length === BLOCK5_QUESTION_COUNT) return restored;
+    }
+    return pickRandomBlock5Questions(BLOCK5_QUESTION_COUNT);
+  });
 
   const totalBlockQuestions = QUESTIONS.length; // 20
   const block5Start = totalBlockQuestions + 1; // step 21
   const block5End = totalBlockQuestions + block5Questions.length; // step 25
   const closingStep = block5End + 1; // step 26
   const doneStep = closingStep + 1; // step 27
+
+  const [step, setStep] = useState(() =>
+    savedInit && savedInit.step > 0 && savedInit.step < doneStep ? savedInit.step : 0,
+  );
+  const [departamento, setDepartamento] = useState(departamentoPreselected || '');
+  const [answers, setAnswers] = useState<Record<string, number>>(savedInit?.answers ?? {});
+  const [block5Answers, setBlock5Answers] = useState<Record<string, number>>(savedInit?.block5Answers ?? {});
+  const [closingAnswer, setClosingAnswer] = useState<number | null>(savedInit?.closingAnswer ?? null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  // Persist progress so the worker can resume if they leave before submitting.
+  // Cleared automatically once the survey is submitted (step >= doneStep).
+  useEffect(() => {
+    if (step >= doneStep) {
+      try { localStorage.removeItem(progressKey); } catch { /* ignore */ }
+      return;
+    }
+    if (step === 0) return;
+    const progress: SavedProgress = {
+      step,
+      answers,
+      block5Answers,
+      closingAnswer,
+      block5QuestionIds: block5Questions.map((q) => q.id),
+    };
+    try {
+      localStorage.setItem(progressKey, JSON.stringify(progress));
+    } catch { /* ignore */ }
+  }, [progressKey, step, answers, block5Answers, closingAnswer, block5Questions, doneStep]);
 
   // Current question context
   const isBlock1to4 = step >= 1 && step <= totalBlockQuestions;
@@ -168,8 +220,17 @@ export function Survey({ empresa, token, onComplete, onBack, departamentoPresele
               </div>
             </div>
 
+            {savedInit && savedInit.step > 0 && (
+              <div className="mt-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <ShieldAlert className="h-5 w-5 flex-shrink-0 text-amber-600" />
+                <p className="text-xs text-amber-700">
+                  Detectamos que ya habías empezado. Si retomas la encuesta, volverás a la última pregunta que estabas respondiendo. Tus respuestas guardadas se conservan en este navegador.
+                </p>
+              </div>
+            )}
+
             <button
-              onClick={() => setStep(1)}
+              onClick={() => setStep(savedInit && savedInit.step > 0 && savedInit.step < doneStep ? savedInit.step : 1)}
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 px-4 py-3 font-semibold text-white shadow-lg shadow-orange-500/20 transition hover:from-orange-400 hover:to-red-500"
             >
               Comenzar encuesta
