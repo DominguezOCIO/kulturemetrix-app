@@ -20,8 +20,40 @@ export default function App() {
   const [tokenDepartamento, setTokenDepartamento] = useState<string | undefined>(undefined);
   const [authReady, setAuthReady] = useState(false);
 
-  // Restore session on mount
+  // Parse the hash ONCE on mount — external links arrive as /#/encuesta?token=... or /#admin.
+  // Computed synchronously so the async session restore below cannot overwrite a token-survey link.
+  const initialHash = window.location.hash;
+  const initialToken = (() => {
+    if (initialHash.includes('encuesta') && initialHash.includes('token=')) {
+      const params = new URLSearchParams(initialHash.split('?')[1]);
+      const t = params.get('token');
+      if (t) return t;
+    }
+    return null;
+  })();
+  const initialIsAdmin = initialHash.includes('admin');
+  const arrivedViaHashLink = !!initialToken || initialIsAdmin;
+
   useEffect(() => {
+    if (initialToken) {
+      setToken(initialToken);
+      setView('token-survey');
+    } else if (initialIsAdmin) {
+      setView('admin');
+    }
+    if (initialHash) {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Restore session on mount — but skip when the user arrived via a token/admin link,
+  // otherwise the restored DEMO/company session overwrites the token-survey view.
+  useEffect(() => {
+    if (arrivedViaHashLink) {
+      setAuthReady(true);
+      return;
+    }
     (async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
@@ -37,24 +69,7 @@ export default function App() {
       }
       setAuthReady(true);
     })();
-  }, []);
-
-  // Only check hash ONCE on mount — for external links (campaign emails, admin URL).
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.includes('encuesta') && hash.includes('token=')) {
-      const params = new URLSearchParams(hash.split('?')[1]);
-      const t = params.get('token');
-      if (t) {
-        setToken(t);
-        setView('token-survey');
-      }
-    } else if (hash.includes('admin')) {
-      setView('admin');
-    }
-    if (hash) {
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useLayoutEffect(() => {
