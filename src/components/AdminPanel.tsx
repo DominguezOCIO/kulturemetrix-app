@@ -1061,8 +1061,7 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
   };
 
   const handleCopyAccess = (code: string) => {
-    const url = `${window.location.origin}/#/encuesta?token=${code}&empresa=${empresaId}`;
-    navigator.clipboard.writeText(url);
+    navigator.clipboard.writeText(code);
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2000);
   };
@@ -1070,17 +1069,14 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
   const handleDownloadCsv = () => {
     if (trabajadores.length === 0) return;
     const rows = filteredTrabajadores.map((t) => {
-      const encuestaUrl = t.encuesta_access_code
-        ? `${window.location.origin}/#/encuesta?token=${t.encuesta_access_code}&empresa=${empresaId}`
-        : '';
+      const shortCode = t.codigo_acceso || t.encuesta_access_code || '';
       return [
         `"${t.email.replace(/"/g, '""')}"`,
         `"${t.departamento_nombre.replace(/"/g, '""')}"`,
-        `"${t.encuesta_access_code || ''}"`,
-        `"${encuestaUrl}"`,
+        `"${shortCode}"`,
       ];
     });
-    const csv = ['Correo electrónico,Departamento,Código de Encuesta,Enlace de Encuesta', ...rows.map((r) => r.join(','))].join('\n');
+    const csv = ['Correo electrónico,Departamento,Código de Acceso', ...rows.map((r) => r.join(','))].join('\n');
     const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -1098,7 +1094,7 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
     <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
       <div className="flex items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#205072]/10 text-[#205072]"><Users className="h-5 w-5" /></div>
-        <div><h3 className="font-bold text-slate-900">Trabajadores registrados</h3><p className="text-xs text-slate-500">El código de encuesta se genera automáticamente al registrar el correo. Cópialo y envíalo manualmente.</p></div>
+        <div><h3 className="font-bold text-slate-900">Trabajadores registrados</h3><p className="text-xs text-slate-500">El código de acceso se genera automáticamente al registrar el correo. Cópialo y envíalo al trabajador para que entre en la home.</p></div>
       </div>
       {trabajadores.length > 0 && (
         <div className="mt-4 flex justify-end">
@@ -1132,7 +1128,7 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
           ) : (
             <div className="mt-5 overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"><th className="px-3 py-2.5">Correo</th><th className="px-3 py-2.5">Departamento</th><th className="px-3 py-2.5">Código de Encuesta</th><th className="px-3 py-2.5">Estado del código</th><th className="px-3 py-2.5 text-right">Acciones</th></tr></thead>
+                <thead><tr className="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"><th className="px-3 py-2.5">Correo</th><th className="px-3 py-2.5">Departamento</th><th className="px-3 py-2.5">Código de Acceso</th><th className="px-3 py-2.5">Estado del código</th><th className="px-3 py-2.5 text-right">Acciones</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredTrabajadores.map((t) => (
                     <tr key={t.id} className="group hover:bg-slate-50 transition">
@@ -1146,15 +1142,15 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
                       </td>
                       <td className="px-3 py-2.5"><span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600"><Tag className="h-3 w-3 text-[#43B59C]" />{t.departamento_nombre}</span></td>
                       <td className="px-3 py-2.5">
-                        {t.encuesta_access_code ? (
+                        {(t.codigo_acceso || t.encuesta_access_code) ? (
                           <div className="flex items-center gap-1.5">
-                            <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-50 px-2 py-1 font-mono text-xs font-semibold text-slate-700 border border-slate-200"><KeyRound className="h-3 w-3 text-slate-400" />{t.encuesta_access_code}</span>
+                            <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-50 px-2 py-1 font-mono text-xs font-semibold text-slate-700 border border-slate-200"><KeyRound className="h-3 w-3 text-slate-400" />{t.codigo_acceso || t.encuesta_access_code}</span>
                             <button
-                              onClick={() => handleCopyAccess(t.encuesta_access_code!)}
+                              onClick={() => handleCopyAccess((t.codigo_acceso || t.encuesta_access_code)!)}
                               className="rounded p-1 text-slate-400 transition hover:bg-slate-100 hover:text-[#205072]"
-                              title="Copiar enlace de encuesta"
+                              title="Copiar código de acceso"
                             >
-                              {copiedCode === t.encuesta_access_code ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                              {copiedCode === (t.codigo_acceso || t.encuesta_access_code) ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
                             </button>
                           </div>
                         ) : (
