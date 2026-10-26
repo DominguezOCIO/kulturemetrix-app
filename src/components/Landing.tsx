@@ -572,7 +572,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
               <User className="h-4 w-4 text-[#205072]" />
               <span className="text-xs font-semibold uppercase tracking-wider text-[#205072]">Registro de trabajadores</span>
             </div>
-            <h2 className="mt-6 text-4xl font-bold text-[#205072] sm:text-5xl">ContactoTrabajador</h2>
+            <h2 className="mt-6 text-4xl font-bold text-[#205072] sm:text-5xl">Correo Trabajador</h2>
             <p className="mt-4 text-lg leading-relaxed text-slate-600">
               Regístrate para recibir tu enlace personal de encuesta cuando tu empresa lance una campaña de auditoría.
             </p>
