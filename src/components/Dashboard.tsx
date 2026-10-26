@@ -218,6 +218,30 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
       </div>
 
       <div className="mx-auto max-w-7xl px-6 py-8">
+        {/* Banner fijo de resultado de la auditoría */}
+        {notaGlobal > 0 && isCertified && (
+          <div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-8 text-center shadow-xl shadow-emerald-500/20">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur">
+              <Trophy className="h-8 w-8 text-white" />
+            </div>
+            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">¡ENHORABUENA, APROBASTE!</h2>
+            <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-emerald-50 sm:text-lg">
+              Tu <strong className="font-bold text-white">CERTIFICADO KULTUREMETRIX</strong> ya está en marcha. Tus trabajadores te han transmitido que se sienten en un entorno corporativo óptimo, favorable y que cuida su bienestar laboral. ¡Sigue así! En 12 meses volvemos a medir el estado general del mayor valor que posees, el humano.
+            </p>
+          </div>
+        )}
+        {notaGlobal > 0 && !isCertified && (
+          <div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-red-500 to-red-700 p-8 text-center shadow-xl shadow-red-500/20">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur">
+              <ShieldAlert className="h-8 w-8 text-white" />
+            </div>
+            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">LO SENTIMOS, TU AUDITORÍA HA RESULTADO FALLIDA</h2>
+            <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-red-50 sm:text-lg">
+              Tu equipo humano necesita que mejores algunos apartados en tu corporación, para poder alcanzar un entorno óptimo y favorable en bienestar laboral. Te dejamos unas ideas de planes de acción, generadas según las métricas de la auditoría, y te animamos a ponerlas en marcha. Y en 12 meses volvemos a tomar el pulso a tu valor más preciado, el humano.
+            </p>
+          </div>
+        )}
+
         {/* Participation panel */}
         <div className="mb-8">
           <h2 className="mb-3 text-lg font-bold text-slate-900">Participación de la plantilla</h2>
