@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   Plus, Search, Pencil, Trash2, X, Loader2, Building2, Users,
   DollarSign, Calendar, Mail, Copy, Check, AlertCircle,
-  ArrowLeft, ShieldCheck, Activity, ChevronRight, Tag, Power,
+  ArrowLeft, ShieldCheck, ShieldAlert, Activity, ChevronRight, Tag, Power,
   Award, BarChart3, PieChart, Target, Lock, KeyRound, Eye, EyeOff,
   Download, CheckCircle2, Clock, Send, TrendingUp, Wallet,
 } from 'lucide-react';
@@ -189,6 +189,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
   const [loadingTrabStats, setLoadingTrabStats] = useState(true);
   const [certEnvios, setCertEnvios] = useState<CertificateEnvio[]>([]);
   const [certBusyId, setCertBusyId] = useState<string | null>(null);
+  const [createdCreds, setCreatedCreds] = useState<{ email: string; password: string; nombre: string } | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -226,7 +227,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
 
   const filtered = empresas.filter((e) => {
     const q = search.toLowerCase();
-    return e.nombre.toLowerCase().includes(q) || e.api_key.toLowerCase().includes(q) || (e.contacto_email || '').toLowerCase().includes(q);
+    return e.nombre.toLowerCase().includes(q) || (e.contacto_email || '').toLowerCase().includes(q);
   });
 
   const totalMRR = empresas
@@ -296,7 +297,18 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
     if (id) {
       await updateEmpresa(id, input);
     } else {
-      await createEmpresa(input);
+      const nueva = await createEmpresa(input);
+      if (adminToken && input.contacto_email) {
+        const tempPassword = generateTempPassword();
+        try {
+          const result = await setupCompanyAuth(adminToken, nueva.id, input.contacto_email.trim(), tempPassword);
+          if (result.success) {
+            setCreatedCreds({ email: input.contacto_email.trim().toLowerCase(), password: tempPassword, nombre: input.nombre });
+          }
+        } catch (err) {
+          console.error('Error al crear credenciales automáticas:', err);
+        }
+      }
     }
     setShowForm(false);
     setEditing(null);
@@ -457,7 +469,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
 
         <div className="mt-8 relative max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nombre, API key o email…" className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nombre o email…" className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" />
         </div>
 
         <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
@@ -476,7 +488,6 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
                     <th className="px-5 py-3 font-semibold">Cuenta</th>
                     <th className="px-5 py-3 font-semibold">Anual</th>
                     <th className="px-5 py-3 font-semibold">Encuestas</th>
-                    <th className="px-5 py-3 font-semibold">API Key</th>
                     <th className="px-5 py-3 font-semibold text-right">Acciones</th>
                   </tr>
                 </thead>
@@ -520,7 +531,6 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
                         </td>
                         <td className="px-5 py-4 font-medium text-slate-700">{Number(emp.precio_mensual || 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</td>
                         <td className="px-5 py-4"><div className="flex items-center gap-1 text-slate-600"><Users className="h-3.5 w-3.5 text-slate-400" /><span className="font-medium">{stats.encuestas}</span></div></td>
-                        <td className="px-5 py-4"><button onClick={() => handleCopyKey(emp.api_key)} className="flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-1 font-mono text-xs text-slate-600 transition hover:bg-slate-200">{emp.api_key}{copiedKey === emp.api_key ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}</button></td>
                         <td className="px-5 py-4"><div className="flex items-center justify-end gap-2"><button onClick={() => { setEditing(emp); setShowForm(true); }} className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700" title="Editar"><Pencil className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(emp)} className="rounded-lg p-2 text-slate-500 transition hover:bg-red-50 hover:text-red-600" title="Eliminar"><Trash2 className="h-4 w-4" /></button></div></td>
                       </tr>
                     );
@@ -548,6 +558,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
 
       {showForm && <EmpresaForm empresa={editing} onSave={handleSave} onCancel={() => { setShowForm(false); setEditing(null); }} />}
       {deleteConfirm && <DeleteConfirm empresa={deleteConfirm} onConfirm={() => handleDelete(deleteConfirm.id)} onCancel={() => setDeleteConfirm(null)} />}
+      {createdCreds && <CreatedCredentialsModal creds={createdCreds} onClose={() => setCreatedCreds(null)} />}
     </div>
   );
 }
@@ -1198,9 +1209,14 @@ function AnnualKpiRow({ icon, label, value, color }: { icon: React.ReactNode; la
   return (<div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4"><div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl ${color}`}>{icon}</div><div><p className="text-2xl font-bold text-slate-900">{value}</p><p className="text-xs text-slate-500">{label}</p></div></div>);
 }
 
+function generateTempPassword(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  return Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
 function EmpresaForm({ empresa, onSave, onCancel }: { empresa: AdminEmpresa | null; onSave: (input: AdminEmpresaInput, id?: string) => void; onCancel: () => void; }) {
   const [form, setForm] = useState<AdminEmpresaInput>({
-    nombre: empresa?.nombre || '', api_key: empresa?.api_key || '', estado_suscripcion: empresa?.estado_suscripcion || 'activa',
+    nombre: empresa?.nombre || '', api_key: '', estado_suscripcion: empresa?.estado_suscripcion || 'activa',
     plan_suscripcion: empresa?.plan_suscripcion || 'starter', precio_mensual: empresa ? Number(empresa.precio_mensual) : 0,
     fecha_alta: empresa?.fecha_alta || new Date().toISOString().slice(0, 10), fecha_renovacion: empresa?.fecha_renovacion || '',
     contacto_email: empresa?.contacto_email || '', contacto_nombre: empresa?.contacto_nombre || '',
@@ -1211,6 +1227,7 @@ function EmpresaForm({ empresa, onSave, onCancel }: { empresa: AdminEmpresa | nu
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nombre.trim()) { setError('El nombre de la empresa es obligatorio.'); return; }
+    if (!empresa && !(form.contacto_email || '').trim()) { setError('El email de contacto es obligatorio para crear las credenciales de acceso.'); return; }
     setSaving(true); setError('');
     try { await onSave(form, empresa?.id); } catch (err: any) { setError(err.message || 'Error al guardar.'); } finally { setSaving(false); }
   };
@@ -1225,7 +1242,7 @@ function EmpresaForm({ empresa, onSave, onCancel }: { empresa: AdminEmpresa | nu
         <form onSubmit={handleSubmit} className="space-y-5 px-6 py-6">
           <div className="grid gap-5 sm:grid-cols-2">
             <div><label className="block text-sm font-medium text-slate-700">Nombre de la empresa *</label><input type="text" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="Ej. Acme Corp" autoFocus /></div>
-            <div><label className="block text-sm font-medium text-slate-700">API Key</label><input type="text" value={form.api_key} onChange={(e) => setForm({ ...form, api_key: e.target.value })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 font-mono text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="Se genera automáticamente si se deja vacío" /><p className="mt-1 text-xs text-slate-400">Deja vacío para autogenerar</p></div>
+            <div><label className="block text-sm font-medium text-slate-700">Contacto (nombre)</label><input type="text" value={form.contacto_nombre || ''} onChange={(e) => setForm({ ...form, contacto_nombre: e.target.value })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="Ej. María García" /></div>
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
             <div><label className="block text-sm font-medium text-slate-700">Plan de suscripción</label><select value={form.plan_suscripcion} onChange={(e) => setForm({ ...form, plan_suscripcion: e.target.value })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"><option value="starter">Starter</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option></select></div>
@@ -1233,13 +1250,13 @@ function EmpresaForm({ empresa, onSave, onCancel }: { empresa: AdminEmpresa | nu
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
             <div><label className="block text-sm font-medium text-slate-700">Precio anual (€)</label><input type="text" inputMode="decimal" value={form.precio_mensual ? Number(form.precio_mensual).toString().replace('.', ',') : ''} onChange={(e) => { const v = e.target.value.replace(',', '.'); const n = v === '' || isNaN(Number(v)) ? 0 : Number(v); setForm({ ...form, precio_mensual: n }); }} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="Ej. 1.200,00" /></div>
-            <div><label className="block text-sm font-medium text-slate-700">Contacto (nombre)</label><input type="text" value={form.contacto_nombre || ''} onChange={(e) => setForm({ ...form, contacto_nombre: e.target.value })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="Ej. María García" /></div>
+            <div><label className="block text-sm font-medium text-slate-700">Email de contacto *</label><input type="email" value={form.contacto_email || ''} onChange={(e) => setForm({ ...form, contacto_email: e.target.value })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="contacto@empresa.com" /></div>
           </div>
-          <div className="grid gap-5 sm:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2">
             <div><label className="flex items-center gap-1.5 text-sm font-medium text-slate-700"><Calendar className="h-3.5 w-3.5" /> Fecha de alta</label><input type="date" value={form.fecha_alta || ''} onChange={(e) => setForm({ ...form, fecha_alta: e.target.value || null })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" /></div>
             <div><label className="flex items-center gap-1.5 text-sm font-medium text-slate-700"><Calendar className="h-3.5 w-3.5" /> Próxima renovación</label><input type="date" value={form.fecha_renovacion || ''} onChange={(e) => setForm({ ...form, fecha_renovacion: e.target.value || null })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" /></div>
-            <div><label className="flex items-center gap-1.5 text-sm font-medium text-slate-700"><Mail className="h-3.5 w-3.5" /> Email de contacto</label><input type="email" value={form.contacto_email || ''} onChange={(e) => setForm({ ...form, contacto_email: e.target.value })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="contacto@empresa.com" /></div>
           </div>
+          {!empresa && (<div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4"><Mail className="h-5 w-5 flex-shrink-0 text-blue-600" /><p className="text-xs text-blue-700">Al crear la empresa se generará automáticamente una cuenta de acceso con el email de contacto y una contraseña temporal que podrás compartir con la empresa.</p></div>)}
           {error && (<div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4"><AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600" /><p className="text-sm text-red-700">{error}</p></div>)}
           <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
             <button type="button" onClick={onCancel} className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">Cancelar</button>
@@ -1248,6 +1265,53 @@ function EmpresaForm({ empresa, onSave, onCancel }: { empresa: AdminEmpresa | nu
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function CreatedCredentialsModal({ creds, onClose }: { creds: { email: string; password: string; nombre: string }; onClose: () => void }) {
+  const [copied, setCopied] = useState<string | null>(null);
+  const handleCopy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(label);
+    setTimeout(() => setCopied(null), 2000);
+  };
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100"><ShieldCheck className="h-6 w-6 text-emerald-600" /></div>
+        <h3 className="mt-4 text-lg font-bold text-slate-900">Credenciales de acceso creadas</h3>
+        <p className="mt-2 text-sm text-slate-500">Se ha creado automáticamente una cuenta de acceso para <span className="font-semibold text-slate-700">{creds.nombre}</span>. Comparte estas credenciales con la empresa para que pueda iniciar sesión.</p>
+        <div className="mt-5 space-y-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-500">Email de acceso</label>
+            <div className="mt-1 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+              <Mail className="h-4 w-4 text-slate-400" />
+              <span className="flex-1 font-mono text-sm text-slate-700">{creds.email}</span>
+              <button onClick={() => handleCopy(creds.email, 'email')} className="rounded p-1 text-slate-400 transition hover:bg-slate-200 hover:text-slate-600">
+                {copied === 'email' ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500">Contraseña temporal</label>
+            <div className="mt-1 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+              <KeyRound className="h-4 w-4 text-slate-400" />
+              <span className="flex-1 font-mono text-sm text-slate-700">{creds.password}</span>
+              <button onClick={() => handleCopy(creds.password, 'pass')} className="rounded p-1 text-slate-400 transition hover:bg-slate-200 hover:text-slate-600">
+                {copied === 'pass' ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="mt-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+          <ShieldAlert className="h-4 w-4 flex-shrink-0 text-amber-600" />
+          <p className="text-xs text-amber-700">La empresa deberá cambiar esta contraseña en su primer acceso. Anota estas credenciales ahora, no se volverán a mostrar.</p>
+        </div>
+        <div className="mt-5 flex justify-end">
+          <button onClick={onClose} className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800">Entendido</button>
+        </div>
       </div>
     </div>
   );
