@@ -12,6 +12,3 @@ verify_jwt = false
 
 [functions.send-audit-notification]
 verify_jwt = false
-
-[functions.create-accesses]
-verify_jwt = true

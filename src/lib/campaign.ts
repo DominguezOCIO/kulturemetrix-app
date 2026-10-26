@@ -94,43 +94,6 @@ export async function validateToken(token: string): Promise<TokenValidation> {
   }
 }
 
-export interface CreateAccessesResult {
-  success: boolean;
-  created?: number;
-  skipped?: number;
-  accesses?: { email: string; access_code: string; departamento_id: string }[];
-  message?: string;
-  error?: string;
-}
-
-export async function createAccesses(empresaId: string): Promise<CreateAccessesResult> {
-  const functionUrl = `${SUPABASE_URL}/functions/v1/create-accesses`;
-
-  const { data: sessionData } = await supabase.auth.getSession();
-  const authToken = sessionData?.session?.access_token || SUPABASE_ANON_KEY;
-
-  try {
-    const res = await fetch(functionUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`,
-      },
-      body: JSON.stringify({ empresa_id: empresaId }),
-    });
-
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      return { success: false, error: body.error || `Error ${res.status}` };
-    }
-
-    const data = await res.json();
-    return data as CreateAccessesResult;
-  } catch {
-    return { success: false, error: 'No se pudo conectar para crear los accesos. Inténtalo de nuevo.' };
-  }
-}
-
 export async function getCampaignStats(empresaId: string): Promise<{ total: number; used: number; pending: number }> {
   const { data, error } = await supabase
     .from('invitaciones')

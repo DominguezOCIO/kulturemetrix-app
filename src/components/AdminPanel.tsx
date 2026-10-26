@@ -22,7 +22,6 @@ import type { Empresa } from '@/lib/scoring';
 import { Logo } from './Logo';
 import { fetchDepartamentos, createDepartamento, deleteDepartamento, fetchTrabajadores, toggleDepartamentoCaptacion, fetchTrabajadoresDetalle, updateTrabajadorEmail, deleteTrabajador, getGlobalTrabajadoresStats } from '@/lib/trabajadores';
 import type { Departamento, TrabajadorConToken } from '@/lib/trabajadores';
-import { createAccesses } from '@/lib/campaign';
 import { supabase } from '@/lib/supabase';
 import { setupCompanyAuth, deleteCompanyAuth } from '@/lib/auth';
 
@@ -1028,8 +1027,6 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
   const [filterDept, setFilterDept] = useState('all');
 
   const [downloadedCsv, setDownloadedCsv] = useState(false);
-  const [creatingAccesses, setCreatingAccesses] = useState(false);
-  const [accessMessage, setAccessMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   const deptosUnicos = useMemo(() => Array.from(new Set(trabajadores.map((t) => t.departamento_nombre))).sort(), [trabajadores]);
@@ -1061,32 +1058,6 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
     if (!deleteTarget) return;
     try { await deleteTrabajador(deleteTarget.id); setDeleteTarget(null); await load(); onStatsChanged(); }
     catch (err) { console.error(err); setDeleteTarget(null); }
-  };
-
-  const handleCreateAccesses = async () => {
-    setCreatingAccesses(true);
-    setAccessMessage(null);
-    try {
-      const result = await createAccesses(empresaId);
-      if (result.success) {
-        const created = result.created ?? 0;
-        const skipped = result.skipped ?? 0;
-        setAccessMessage({
-          type: 'success',
-          text: created > 0
-            ? `Se crearon ${created} código${created !== 1 ? 's' : ''} de acceso.${skipped > 0 ? ` ${skipped} ya tenían código.` : ''}`
-            : 'Todos los trabajadores ya tienen un código de acceso.',
-        });
-        await load();
-        onStatsChanged();
-      } else {
-        setAccessMessage({ type: 'error', text: result.error || 'Error al crear los accesos.' });
-      }
-    } catch {
-      setAccessMessage({ type: 'error', text: 'Error de conexión.' });
-    } finally {
-      setCreatingAccesses(false);
-    }
   };
 
   const handleCopyAccess = (code: string) => {
@@ -1127,18 +1098,10 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
     <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
       <div className="flex items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#205072]/10 text-[#205072]"><Users className="h-5 w-5" /></div>
-        <div><h3 className="font-bold text-slate-900">Trabajadores registrados</h3><p className="text-xs text-slate-500">Lista en tiempo real de los correos registrados desde la Home.</p></div>
+        <div><h3 className="font-bold text-slate-900">Trabajadores registrados</h3><p className="text-xs text-slate-500">El código de encuesta se genera automáticamente al registrar el correo. Cópialo y envíalo manualmente.</p></div>
       </div>
       {trabajadores.length > 0 && (
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-          <button
-            onClick={handleCreateAccesses}
-            disabled={creatingAccesses}
-            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#205072] to-[#43B59C] px-4 py-2 text-sm font-semibold text-white transition hover:from-[#1a3f5e] hover:to-[#3a9d87] disabled:opacity-60"
-          >
-            {creatingAccesses ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
-            Crear Accesos
-          </button>
+        <div className="mt-4 flex justify-end">
           <button
             onClick={handleDownloadCsv}
             className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
@@ -1146,12 +1109,6 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
             {downloadedCsv ? <Check className="h-4 w-4 text-emerald-400" /> : <Download className="h-4 w-4" />}
             Descargar CSV de Trabajadores
           </button>
-        </div>
-      )}
-      {accessMessage && (
-        <div className={`mt-3 flex items-start gap-3 rounded-xl border p-3 ${accessMessage.type === 'success' ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'}`}>
-          {accessMessage.type === 'success' ? <Check className="h-4 w-4 flex-shrink-0 text-emerald-600" /> : <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-600" />}
-          <p className={`text-sm ${accessMessage.type === 'success' ? 'text-emerald-700' : 'text-red-700'}`}>{accessMessage.text}</p>
         </div>
       )}
       {loading ? (
