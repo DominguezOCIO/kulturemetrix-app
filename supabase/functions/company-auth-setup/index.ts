@@ -79,6 +79,17 @@ Deno.serve(async (req: Request) => {
 
       if (existing) {
         userId = existing.id;
+        // Always update the password so the credentials shown to the admin actually work
+        const { error: updateError } = await adminClient.auth.admin.updateUserById(
+          userId,
+          { password },
+        );
+        if (updateError) {
+          return new Response(
+            JSON.stringify({ error: "Error al actualizar la contraseña: " + (updateError?.message || "desconocido") }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
       } else {
         const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
           email: email.trim().toLowerCase(),
@@ -95,10 +106,10 @@ Deno.serve(async (req: Request) => {
         userId = newUser.user.id;
       }
 
-      // Link the auth user to the empresa
+      // Link the auth user to the empresa and activate the account
       const { error: linkError } = await adminClient
         .from("empresas")
-        .update({ auth_user_id: userId })
+        .update({ auth_user_id: userId, cuenta_activa: true })
         .eq("id", empresa_id);
 
       if (linkError) {
