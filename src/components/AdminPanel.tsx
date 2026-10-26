@@ -4,7 +4,7 @@ import {
   DollarSign, Calendar, Mail, Copy, Check, AlertCircle,
   ArrowLeft, ShieldCheck, Activity, ChevronRight, Tag, Power,
   Award, BarChart3, PieChart, Target, Lock, KeyRound, Eye, EyeOff,
-  Download, CheckCircle2, Clock,
+  Download, CheckCircle2, Clock, Send,
 } from 'lucide-react';
 import {
   PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip as ReTooltip,
@@ -13,8 +13,9 @@ import { CERTIFICATE_THRESHOLD } from '@/lib/scoring';
 import {
   fetchAllEmpresas, createEmpresa, updateEmpresa, deleteEmpresa, fetchEmpresaStats, toggleCaptacion,
   fetchSolicitudesAuditoria, deleteSolicitudAuditoria, updateSolicitudEstado,
+  fetchCertificateEnvios, addCertificateEnvio, markCertificateEnvioEnviado,
 } from '@/lib/admin';
-import type { AdminEmpresa, AdminEmpresaInput, SolicitudAuditoria } from '@/lib/admin';
+import type { AdminEmpresa, AdminEmpresaInput, SolicitudAuditoria, CertificateEnvio } from '@/lib/admin';
 import { CampaignPanel } from './CampaignPanel';
 import type { Empresa } from '@/lib/scoring';
 import { Logo } from './Logo';
@@ -185,16 +186,20 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
 
   const [globalTrabStats, setGlobalTrabStats] = useState({ total: 0, completados: 0, pendientes: 0, participacion: 0 });
   const [loadingTrabStats, setLoadingTrabStats] = useState(true);
+  const [certEnvios, setCertEnvios] = useState<CertificateEnvio[]>([]);
+  const [certBusyId, setCertBusyId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
     try {
-      const [data, gStats] = await Promise.all([
+      const [data, gStats, envios] = await Promise.all([
         fetchAllEmpresas(),
         getGlobalTrabajadoresStats().catch(() => ({ total: 0, completados: 0, pendientes: 0, participacion: 0 })),
+        fetchCertificateEnvios().catch(() => [] as CertificateEnvio[]),
       ]);
       setEmpresas(data);
       setGlobalTrabStats(gStats);
+      setCertEnvios(envios);
       setLoadingTrabStats(false);
       const statsMap: Record<string, { encuestas: number; tokens: number; tokensUsados: number }> = {};
       await Promise.all(
@@ -272,6 +277,35 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
     await deleteEmpresa(id);
     setDeleteConfirm(null);
     await load();
+  };
+
+  const envioEmpresaIds = useMemo(() => new Set(certEnvios.map((e) => e.empresa_id)), [certEnvios]);
+
+  const handleAddCertEnvio = async (emp: AdminEmpresa) => {
+    if (envioEmpresaIds.has(emp.id)) return;
+    setCertBusyId(emp.id);
+    try {
+      const nuevo = await addCertificateEnvio(emp);
+      setCertEnvios((prev) => [...prev, nuevo]);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCertBusyId(null);
+    }
+  };
+
+  const handleMarkEnviado = async (envioId: string) => {
+    setCertBusyId(envioId);
+    try {
+      await markCertificateEnvioEnviado(envioId);
+      setCertEnvios((prev) =>
+        prev.map((e) => (e.id === envioId ? { ...e, estado: 'enviado', enviado_at: new Date().toISOString() } : e)),
+      );
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCertBusyId(null);
+    }
   };
 
   if (selectedEmpresa) {
@@ -432,7 +466,21 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
                           </button>
                         </td>
                         <td className="px-5 py-4"><span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${planInfo.color}`}>{planInfo.label}</span></td>
-                        <td className="px-5 py-4"><span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${auditEstado.color}`}>{auditEstado.label}</span></td>
+                        <td className="px-5 py-4">
+                          {auditEstado === AUDIT_ESTADO.certificada ? (
+                            <button
+                              onClick={() => handleAddCertEnvio(emp)}
+                              disabled={envioEmpresaIds.has(emp.id) || certBusyId === emp.id}
+                              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold transition ${envioEmpresaIds.has(emp.id) ? 'bg-slate-100 text-slate-400 cursor-default' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
+                              title={envioEmpresaIds.has(emp.id) ? 'Ya en el listado de envío' : 'Enviar a listado de certificados'}
+                            >
+                              {certBusyId === emp.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+                              {auditEstado.label}
+                            </button>
+                          ) : (
+                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${auditEstado.color}`}>{auditEstado.label}</span>
+                          )}
+                        </td>
                         <td className="px-5 py-4">
                           {emp.auth_user_id ? (
                             <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700"><ShieldCheck className="h-3 w-3 text-slate-500" /> Cuenta Activa</span>
@@ -453,6 +501,14 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
           )}
         </div>
           </>
+        )}
+
+        {tab === 'empresas' && (
+          <CertificateEnviosPanel
+            envios={certEnvios}
+            onMarkEnviado={handleMarkEnviado}
+            busyId={certBusyId}
+          />
         )}
       </div>
 
@@ -1158,6 +1214,81 @@ function DeleteConfirm({ empresa, onConfirm, onCancel }: { empresa: AdminEmpresa
           <button onClick={handleConfirm} disabled={deleting} className="flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50">{deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />} Eliminar</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function CertificateEnviosPanel({ envios, onMarkEnviado, busyId }: {
+  envios: CertificateEnvio[];
+  onMarkEnviado: (id: string) => void;
+  busyId: string | null;
+}) {
+  const sorted = [...envios].sort((a, b) => {
+    const aPend = a.estado === 'pendiente';
+    const bPend = b.estado === 'pendiente';
+    if (aPend !== bPend) return aPend ? -1 : 1;
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  });
+
+  return (
+    <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <div className="flex items-center gap-2 border-b border-slate-200 px-6 py-4">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+          <Award className="h-5 w-5" />
+        </div>
+        <div>
+          <h2 className="text-lg font-bold text-slate-900">Enviar Certificado</h2>
+          <p className="text-xs text-slate-500">Empresas certificadas pendientes de envío. Al marcar como ENVIADO pasan al final del listado.</p>
+        </div>
+      </div>
+
+      {sorted.length === 0 ? (
+        <div className="py-12 text-center">
+          <Award className="mx-auto h-9 w-9 text-slate-300" />
+          <h3 className="mt-3 font-semibold text-slate-700">No hay empresas en el listado</h3>
+          <p className="mt-1 text-sm text-slate-500">Las empresas certificadas aparecerán aquí al hacer clic en su etiqueta CERTIFICADA.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="px-5 py-3 font-semibold">Empresa</th>
+                <th className="px-5 py-3 font-semibold">Correo</th>
+                <th className="px-5 py-3 font-semibold">Persona de contacto</th>
+                <th className="px-5 py-3 font-semibold text-right">Estado</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {sorted.map((envio) => (
+                <tr key={envio.id} className="transition hover:bg-slate-50">
+                  <td className="px-5 py-4 font-semibold text-slate-900">{envio.empresa_nombre}</td>
+                  <td className="px-5 py-4 text-slate-600">{envio.contacto_email || '—'}</td>
+                  <td className="px-5 py-4 text-slate-600">{envio.contacto_nombre || '—'}</td>
+                  <td className="px-5 py-4 text-right">
+                    <button
+                      onClick={() => envio.estado === 'pendiente' && onMarkEnviado(envio.id)}
+                      disabled={envio.estado === 'enviado' || busyId === envio.id}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition ${
+                        envio.estado === 'pendiente'
+                          ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                          : 'bg-emerald-500 text-white'
+                      }`}
+                    >
+                      {busyId === envio.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <span className={`h-1.5 w-1.5 rounded-full ${envio.estado === 'pendiente' ? 'bg-amber-500' : 'bg-white'}`} />
+                      )}
+                      {envio.estado === 'pendiente' ? 'PENDIENTE' : 'ENVIADO'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

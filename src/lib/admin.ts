@@ -160,3 +160,47 @@ export async function updateSolicitudEstado(id: string, estado: string): Promise
   const { error } = await supabase.from('solicitudes_auditoria').update({ estado }).eq('id', id);
   if (error) throw new Error(parseSupabaseError(error));
 }
+
+export interface CertificateEnvio {
+  id: string;
+  empresa_id: string;
+  empresa_nombre: string;
+  contacto_email: string | null;
+  contacto_nombre: string | null;
+  estado: string;
+  created_at: string;
+  enviado_at: string | null;
+}
+
+export async function fetchCertificateEnvios(): Promise<CertificateEnvio[]> {
+  const { data, error } = await supabase
+    .from('certificate_envios')
+    .select('id, empresa_id, empresa_nombre, contacto_email, contacto_nombre, estado, created_at, enviado_at')
+    .order('created_at', { ascending: true });
+  if (error) throw new Error(parseSupabaseError(error));
+  return (data || []) as CertificateEnvio[];
+}
+
+export async function addCertificateEnvio(empresa: AdminEmpresa): Promise<CertificateEnvio> {
+  const { data, error } = await supabase
+    .from('certificate_envios')
+    .insert({
+      empresa_id: empresa.id,
+      empresa_nombre: empresa.nombre,
+      contacto_email: empresa.contacto_email,
+      contacto_nombre: empresa.contacto_nombre,
+      estado: 'pendiente',
+    })
+    .select('id, empresa_id, empresa_nombre, contacto_email, contacto_nombre, estado, created_at, enviado_at')
+    .single();
+  if (error) throw new Error(parseSupabaseError(error));
+  return data as CertificateEnvio;
+}
+
+export async function markCertificateEnvioEnviado(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('certificate_envios')
+    .update({ estado: 'enviado', enviado_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw new Error(parseSupabaseError(error));
+}
