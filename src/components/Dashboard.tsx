@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import {
-  ArrowLeft, Download, AlertTriangle, Lightbulb, TrendingUp,
+  ArrowLeft, AlertTriangle, Lightbulb, TrendingUp,
   Users, Clock, Brain, Trophy, Loader2, BarChart3, ShieldAlert,
   ShieldCheck, Ban, Scale, Target,
   CheckCircle2, Mail,
@@ -14,7 +14,6 @@ import { getEmpresaBlockScores, getDeptScores, getNotaColor, CERTIFICATE_THRESHO
 import type { Empresa, BlockScore, DeptScore } from '@/lib/scoring';
 import { getTrabajadoresStats } from '@/lib/trabajadores';
 import type { TrabajadoresStats } from '@/lib/trabajadores';
-import { CertificateModal } from './CertificateModal';
 import { Logo } from './Logo';
 
 interface DashboardProps {
@@ -96,7 +95,6 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
   const [deptScores, setDeptScores] = useState<DeptScore[]>([]);
   const [selectedDept, setSelectedDept] = useState<string>('__global__');
   const [loading, setLoading] = useState(true);
-  const [showCert, setShowCert] = useState(false);
   const [trabStats, setTrabStats] = useState<TrabajadoresStats>({ total: 0, completados: 0, pendientes: 0, participacion: 0, porDepartamento: [] });
   const [loadingTrabStats, setLoadingTrabStats] = useState(true);
 
@@ -227,7 +225,7 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
             </div>
             <h2 className="text-3xl font-extrabold text-white sm:text-4xl">¡ENHORABUENA, APROBASTE!</h2>
             <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-emerald-50 sm:text-lg">
-              Tu <strong className="font-bold text-white">CERTIFICADO KULTUREMETRIX</strong> ya está en marcha. Tus trabajadores te han transmitido que se sienten en un entorno corporativo óptimo, favorable y que cuida su bienestar laboral. ¡Sigue así! En 12 meses volvemos a medir el estado general del mayor valor que posees, el humano.
+              Tu <strong className="font-bold text-white">CERTIFICADO KULTUREMETRIX</strong> ya está en marcha. Tus trabajadores te han transmitido que se sienten en un entorno corporativo óptimo, favorable y que cuida su bienestar laboral. ¡Sigue así! En 12 meses volvemos a medir el estado general del mayor valor que posees, el humano. El equipo de KULTUREMETRIX te enviará el certificado oficial a través de los canales corporativos correspondientes.
             </p>
           </div>
         )}
@@ -383,13 +381,16 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setShowCert(true)}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-4 font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:from-emerald-500 hover:to-emerald-600"
-                  >
-                    <Download className="h-5 w-5" />
-                    Descargar Certificado Oficial de Bienestar Corporativo KULTUREMETRIX
-                  </button>
+                  <div className="mt-4 flex items-start gap-3 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+                    <Mail className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600" />
+                    <div>
+                      <p className="text-sm font-semibold text-emerald-800">Certificado en trámite de envío</p>
+                      <p className="mt-1 text-sm leading-relaxed text-emerald-700">
+                        El equipo de KULTUREMETRIX se pondrá en contacto contigo para enviarte el Certificado Oficial de Bienestar Corporativo de forma externa.
+                        No es necesario que lo descargues; lo recibirás a través del canal corporativo correspondiente.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ) : allCompleted && notaGlobal > 0 ? (
                 <div className="rounded-xl border-2 border-slate-200 bg-white p-6">
@@ -660,10 +661,6 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
           </div>
         )}
       </div>
-
-      {showCert && (
-        <CertificateModal empresa={empresa} notaGlobal={notaGlobal} onClose={() => setShowCert(false)} />
-      )}
     </div>
   );
 }
