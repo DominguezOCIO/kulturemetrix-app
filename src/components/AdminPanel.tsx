@@ -1,14 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   Plus, Search, Pencil, Trash2, X, Loader2, Building2, Users,
-  TrendingUp, DollarSign, Calendar, Mail, Copy, Check, AlertCircle,
+  DollarSign, Calendar, Mail, Copy, Check, AlertCircle,
   ArrowLeft, ShieldCheck, Activity, ChevronRight, Tag, Power,
   Award, BarChart3, PieChart, Target, Lock, KeyRound, Eye, EyeOff,
   Download, CheckCircle2, Clock,
 } from 'lucide-react';
 import {
   PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip as ReTooltip,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ReTooltipBar,
 } from 'recharts';
 import { CERTIFICATE_THRESHOLD } from '@/lib/scoring';
 import {
@@ -38,6 +37,17 @@ const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
   suspendida: { label: 'Suspendida', color: 'bg-amber-100 text-amber-700' },
   cancelada: { label: 'Cancelada', color: 'bg-red-100 text-red-700' },
 };
+
+const AUDIT_ESTADO = {
+  auditando: { label: 'AUDITANDO', color: 'bg-slate-200 text-slate-700' },
+  certificada: { label: 'CERTIFICADA', color: 'bg-emerald-500 text-white' },
+  fallida: { label: 'FALLIDA', color: 'bg-red-500 text-white' },
+};
+
+function getAuditEstado(notaGlobal: number) {
+  if (notaGlobal <= 0) return AUDIT_ESTADO.auditando;
+  return notaGlobal >= CERTIFICATE_THRESHOLD ? AUDIT_ESTADO.certificada : AUDIT_ESTADO.fallida;
+}
 
 type View = 'login' | 'list';
 
@@ -241,12 +251,6 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
     { name: 'Certificadas (≥85)', value: annualStats.totalCertificadas, color: '#059669' },
     { name: 'No certificadas (<85)', value: annualStats.totalConEncuestas - annualStats.totalCertificadas, color: '#f59e0b' },
   ];
-  const barData = [
-    { name: 'Total altas', value: annualStats.totalAltas },
-    { name: 'Con encuestas', value: annualStats.totalConEncuestas },
-    { name: 'Certificadas', value: annualStats.totalCertificadas },
-  ];
-
   const handleCopyKey = (key: string) => {
     navigator.clipboard.writeText(key);
     setCopiedKey(key);
@@ -341,7 +345,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
           </div>
           <p className="mt-1 text-sm text-slate-500">Resumen del rendimiento del proceso de auditoría y certificación.</p>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-3">
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <div className="space-y-4">
               <AnnualKpiRow icon={<Building2 className="h-5 w-5" />} label="Empresas dadas de alta" value={annualStats.totalAltas} color="text-slate-700 bg-slate-100" />
               <AnnualKpiRow icon={<Target className="h-5 w-5" />} label="Empresas que realizaron la auditoría" value={annualStats.totalConEncuestas} color="text-blue-700 bg-blue-100" />
@@ -384,30 +388,6 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
               </div>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-blue-600" />
-                <h3 className="font-bold text-slate-900">Comparativa del embudo</h3>
-              </div>
-              <p className="mt-1 text-xs text-slate-500">Del alta a la certificación</p>
-              <div className="mt-3 h-48">
-                {annualStats.totalAltas > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={barData} layout="vertical" margin={{ left: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-                      <XAxis type="number" tick={{ fill: '#94a3b8', fontSize: 11 }} allowDecimals={false} />
-                      <YAxis type="category" dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} width={90} />
-                      <ReTooltipBar cursor={{ fill: '#f1f5f9' }} formatter={(v: number) => [`${v} empresas`, '']} />
-                      <Bar dataKey="value" radius={[0, 6, 6, 0]}>
-                        {barData.map((entry, idx) => (<Cell key={idx} fill={idx === 2 ? '#059669' : idx === 1 ? '#0284c7' : '#94a3b8'} />))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-slate-400">Sin datos</div>
-                )}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -440,7 +420,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
                   {filtered.map((emp) => {
                     const stats = statsCache[emp.id] || { encuestas: 0, tokens: 0, tokensUsados: 0 };
                     const planInfo = PLAN_LABELS[emp.plan_suscripcion] || PLAN_LABELS.starter;
-                    const estadoInfo = ESTADO_LABELS[emp.estado_suscripcion] || ESTADO_LABELS.activa;
+                    const auditEstado = getAuditEstado(emp.nota_global);
                     return (
                       <tr key={emp.id} className="transition hover:bg-slate-50">
                         <td className="px-5 py-4">
@@ -452,7 +432,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
                           </button>
                         </td>
                         <td className="px-5 py-4"><span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${planInfo.color}`}>{planInfo.label}</span></td>
-                        <td className="px-5 py-4"><span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${estadoInfo.color}`}>{estadoInfo.label}</span></td>
+                        <td className="px-5 py-4"><span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${auditEstado.color}`}>{auditEstado.label}</span></td>
                         <td className="px-5 py-4">
                           {emp.auth_user_id ? (
                             <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700"><ShieldCheck className="h-3 w-3 text-slate-500" /> Cuenta Activa</span>
@@ -692,7 +672,7 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
   adminToken: string | null;
 }) {
   const planInfo = PLAN_LABELS[empresa.plan_suscripcion] || PLAN_LABELS.starter;
-  const estadoInfo = ESTADO_LABELS[empresa.estado_suscripcion] || ESTADO_LABELS.activa;
+  const auditEstado = getAuditEstado(empresa.nota_global);
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   const [newDept, setNewDept] = useState('');
   const [loadingDepts, setLoadingDepts] = useState(true);
@@ -809,7 +789,7 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
             </div>
             <div className="flex flex-wrap gap-2">
               <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${planInfo.color}`}>{planInfo.label}</span>
-              <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${estadoInfo.color}`}>{estadoInfo.label}</span>
+              <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${auditEstado.color}`}>{auditEstado.label}</span>
             </div>
           </div>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">

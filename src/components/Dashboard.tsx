@@ -209,9 +209,9 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                 <span className="font-bold text-slate-900">{empresa.nombre}</span>
               </div>
             </div>
-            <div className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-              <span className={`h-2 w-2 rounded-full ${empresa.estado_suscripcion === 'activa' ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-              Suscripción {empresa.estado_suscripcion}
+            <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${isCertified ? 'bg-emerald-500 text-white' : notaGlobal > 0 ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-700'}`}>
+              <span className="h-2 w-2 rounded-full bg-white/80" />
+              {isCertified ? 'CERTIFICADA' : notaGlobal > 0 ? 'FALLIDA' : 'AUDITANDO'}
             </div>
           </div>
         </div>
