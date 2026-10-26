@@ -63,9 +63,9 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
         {/* Top bar */}
         <div className="relative mx-auto max-w-6xl px-6 pt-12">
           <div className="flex items-center gap-3">
-            <Logo className="h-12 w-52 text-white" />
+            <Logo className="h-16 w-72 text-white" />
             <div>
-              <p className="text-xs text-slate-400">Auditoría externa del bienestar corporativo</p>
+              <p className="text-sm text-slate-400 sm:text-base">Auditoría externa del bienestar corporativo</p>
             </div>
           </div>
         </div>
