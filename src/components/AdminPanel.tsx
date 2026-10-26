@@ -4,10 +4,11 @@ import {
   DollarSign, Calendar, Mail, Copy, Check, AlertCircle,
   ArrowLeft, ShieldCheck, Activity, ChevronRight, Tag, Power,
   Award, BarChart3, PieChart, Target, Lock, KeyRound, Eye, EyeOff,
-  Download, CheckCircle2, Clock, Send,
+  Download, CheckCircle2, Clock, Send, TrendingUp, Wallet,
 } from 'lucide-react';
 import {
   PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip as ReTooltip,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ReTooltipBar,
 } from 'recharts';
 import { CERTIFICATE_THRESHOLD } from '@/lib/scoring';
 import {
@@ -235,6 +236,35 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
   const activeCount = empresas.filter((e) => e.estado_suscripcion === 'activa').length;
   const totalEncuestas = Object.values(statsCache).reduce((acc, s) => acc + s.encuestas, 0);
 
+  const econStats = useMemo(() => {
+    const total = empresas.length;
+    const byPlan = { starter: 0, pro: 0, enterprise: 0 } as Record<string, number>;
+    const activeByPlan = { starter: 0, pro: 0, enterprise: 0 } as Record<string, number>;
+    let ingresoAnualTotal = 0;
+    for (const e of empresas) {
+      const plan = (e.plan_suscripcion || 'starter').toLowerCase();
+      if (byPlan[plan] !== undefined) byPlan[plan] += 1;
+      if (e.estado_suscripcion === 'activa') {
+        if (activeByPlan[plan] !== undefined) activeByPlan[plan] += 1;
+        ingresoAnualTotal += Number(e.precio_mensual || 0) * 12;
+      }
+    }
+    const yearly: Record<number, number> = {};
+    for (const e of empresas) {
+      if (e.estado_suscripcion !== 'activa') continue;
+      const year = e.fecha_alta ? new Date(e.fecha_alta).getFullYear() : new Date(e.created_at).getFullYear();
+      yearly[year] = (yearly[year] || 0) + Number(e.precio_mensual || 0) * 12;
+    }
+    const years = Object.keys(yearly).map(Number).sort((a, b) => a - b);
+    const historical = years.map((yr, idx) => {
+      const ingreso = yearly[yr];
+      const prev = idx > 0 ? yearly[years[idx - 1]] : 0;
+      const diffPct = prev > 0 ? Math.round(((ingreso - prev) / prev) * 1000) / 10 : null;
+      return { year: String(yr), ingreso, diffPct };
+    });
+    return { total, byPlan, activeByPlan, ingresoAnualTotal, historical };
+  }, [empresas]);
+
   const annualStats = useMemo(() => {
     const empresasConEncuestas = empresas.filter((e) => {
       const s = statsCache[e.id];
@@ -444,7 +474,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
                     <th className="px-5 py-3 font-semibold">Plan</th>
                     <th className="px-5 py-3 font-semibold">Estado</th>
                     <th className="px-5 py-3 font-semibold">Cuenta</th>
-                    <th className="px-5 py-3 font-semibold">Mensual</th>
+                    <th className="px-5 py-3 font-semibold">Anual</th>
                     <th className="px-5 py-3 font-semibold">Encuestas</th>
                     <th className="px-5 py-3 font-semibold">API Key</th>
                     <th className="px-5 py-3 font-semibold text-right">Acciones</th>
@@ -488,7 +518,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
                             <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700"><AlertCircle className="h-3 w-3 text-amber-500" /> Sin Accesos</span>
                           )}
                         </td>
-                        <td className="px-5 py-4 font-medium text-slate-700">{Number(emp.precio_mensual || 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</td>
+                        <td className="px-5 py-4 font-medium text-slate-700">{Number(emp.precio_mensual || 0 * 12).toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</td>
                         <td className="px-5 py-4"><div className="flex items-center gap-1 text-slate-600"><Users className="h-3.5 w-3.5 text-slate-400" /><span className="font-medium">{stats.encuestas}</span></div></td>
                         <td className="px-5 py-4"><button onClick={() => handleCopyKey(emp.api_key)} className="flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-1 font-mono text-xs text-slate-600 transition hover:bg-slate-200">{emp.api_key}{copiedKey === emp.api_key ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}</button></td>
                         <td className="px-5 py-4"><div className="flex items-center justify-end gap-2"><button onClick={() => { setEditing(emp); setShowForm(true); }} className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700" title="Editar"><Pencil className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(emp)} className="rounded-lg p-2 text-slate-500 transition hover:bg-red-50 hover:text-red-600" title="Eliminar"><Trash2 className="h-4 w-4" /></button></div></td>
@@ -509,6 +539,10 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
             onMarkEnviado={handleMarkEnviado}
             busyId={certBusyId}
           />
+        )}
+
+        {tab === 'empresas' && (
+          <EconomicPanel econStats={econStats} />
         )}
       </div>
 
@@ -849,7 +883,7 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
             </div>
           </div>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Mensual</p><p className="mt-1 text-sm font-bold text-slate-900">{Number(empresa.precio_mensual || 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</p></div>
+            <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Anual</p><p className="mt-1 text-sm font-bold text-slate-900">{Number(empresa.precio_mensual || 0 * 12).toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</p></div>
             <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Nota global</p><p className="mt-1 text-sm font-bold text-slate-900">{empresa.nota_global.toFixed(1)} / 100</p></div>
             <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Alta</p><p className="mt-1 text-sm font-bold text-slate-900">{empresa.fecha_alta || '—'}</p></div>
             <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Renovación</p><p className="mt-1 text-sm font-bold text-slate-900">{empresa.fecha_renovacion || '—'}</p></div>
@@ -1179,7 +1213,7 @@ function EmpresaForm({ empresa, onSave, onCancel }: { empresa: AdminEmpresa | nu
             <div><label className="block text-sm font-medium text-slate-700">Estado</label><select value={form.estado_suscripcion} onChange={(e) => setForm({ ...form, estado_suscripcion: e.target.value })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"><option value="activa">Activa</option><option value="suspendida">Suspendida</option><option value="cancelada">Cancelada</option></select></div>
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
-            <div><label className="block text-sm font-medium text-slate-700">Precio mensual (€)</label><input type="number" step="0.01" min="0" value={form.precio_mensual} onChange={(e) => setForm({ ...form, precio_mensual: Number(e.target.value) })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" /></div>
+            <div><label className="block text-sm font-medium text-slate-700">Precio anual (€)</label><input type="number" step="0.01" min="0" value={form.precio_mensual ? Number(form.precio_mensual) * 12 : 0} onChange={(e) => setForm({ ...form, precio_mensual: Number(e.target.value) / 12 })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" /><p className="mt-1 text-xs text-slate-400">Se guarda como precio mensual internamente (anual ÷ 12)</p></div>
             <div><label className="block text-sm font-medium text-slate-700">Contacto (nombre)</label><input type="text" value={form.contacto_nombre || ''} onChange={(e) => setForm({ ...form, contacto_nombre: e.target.value })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="Ej. María García" /></div>
           </div>
           <div className="grid gap-5 sm:grid-cols-3">
@@ -1289,6 +1323,137 @@ function CertificateEnviosPanel({ envios, onMarkEnviado, busyId }: {
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+interface EconStats {
+  total: number;
+  byPlan: Record<string, number>;
+  activeByPlan: Record<string, number>;
+  ingresoAnualTotal: number;
+  historical: { year: string; ingreso: number; diffPct: number | null }[];
+}
+
+function EconomicPanel({ econStats }: { econStats: EconStats }) {
+  const fmtEUR = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  const planRows = [
+    { key: 'starter', label: 'Starter', color: 'bg-slate-100 text-slate-700', dot: 'bg-slate-400', refPrice: '1.188 €/año' },
+    { key: 'pro', label: 'Pro', color: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500', refPrice: '2.988 €/año' },
+    { key: 'enterprise', label: 'Enterprise', color: 'bg-purple-100 text-purple-700', dot: 'bg-purple-500', refPrice: 'Desde 5.988 €/año' },
+  ];
+
+  const barData = econStats.historical.map((h) => ({ year: h.year, ingreso: h.ingreso }));
+
+  return (
+    <div className="mt-8 space-y-6">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div className="flex items-center gap-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+            <Wallet className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Resumen Económico</h2>
+            <p className="text-xs text-slate-500">Datos económicos globales de las empresas dadas de alta.</p>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+              <Building2 className="h-5 w-5" />
+            </div>
+            <p className="mt-3 text-3xl font-bold text-slate-900">{econStats.total}</p>
+            <p className="text-xs text-slate-500">Nº total de empresas</p>
+          </div>
+
+          {planRows.map((p) => (
+            <div key={p.key} className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${p.color}`}>{p.label}</span>
+              </div>
+              <p className="mt-3 text-3xl font-bold text-slate-900">{econStats.byPlan[p.key] || 0}</p>
+              <p className="text-xs text-slate-500">Empresas en plan {p.label} · {p.refPrice}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 rounded-xl border-2 border-emerald-200 bg-emerald-50 p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20">
+              <DollarSign className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-emerald-700 uppercase tracking-wide">Ingreso anual total</p>
+              <p className="text-3xl font-extrabold text-emerald-700">{fmtEUR(econStats.ingresoAnualTotal)}</p>
+              <p className="text-xs text-emerald-600 mt-0.5">Suma de los precios anuales de las empresas con suscripción activa</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div className="flex items-center gap-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+            <TrendingUp className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Histórico anual de ingresos</h2>
+            <p className="text-xs text-slate-500">Comparativa del ingreso anual y el porcentaje de crecimiento año a año.</p>
+          </div>
+        </div>
+
+        {econStats.historical.length === 0 ? (
+          <div className="mt-6 py-10 text-center">
+            <TrendingUp className="mx-auto h-9 w-9 text-slate-300" />
+            <p className="mt-3 text-sm text-slate-500">Aún no hay datos suficientes para mostrar el histórico.</p>
+          </div>
+        ) : (
+          <>
+            <div className="mt-6 h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={barData} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis dataKey="year" tick={{ fill: '#64748b', fontSize: 12 }} />
+                  <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
+                  <ReTooltipBar cursor={{ fill: '#f1f5f9' }} formatter={(v: number) => [fmtEUR(v), 'Ingreso anual']} />
+                  <Bar dataKey="ingreso" radius={[6, 6, 0, 0]} fill="#059669" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="mt-6 overflow-hidden rounded-xl border border-slate-200">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-5 py-3 font-semibold">Año</th>
+                    <th className="px-5 py-3 font-semibold">Ingreso anual</th>
+                    <th className="px-5 py-3 font-semibold text-right">Variación interanual</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {econStats.historical.map((h, idx) => (
+                    <tr key={h.year} className="transition hover:bg-slate-50">
+                      <td className="px-5 py-4 font-semibold text-slate-900">{h.year}</td>
+                      <td className="px-5 py-4 font-medium text-slate-700">{fmtEUR(h.ingreso)}</td>
+                      <td className="px-5 py-4 text-right">
+                        {idx === 0 || h.diffPct === null ? (
+                          <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">Base inicial</span>
+                        ) : (
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${h.diffPct >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                            <TrendingUp className={`h-3 w-3 ${h.diffPct < 0 ? 'rotate-180' : ''}`} />
+                            {h.diffPct >= 0 ? '+' : ''}{h.diffPct}%
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
