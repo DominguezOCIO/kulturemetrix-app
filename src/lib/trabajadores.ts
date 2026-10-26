@@ -17,6 +17,7 @@ export interface Trabajador {
 export interface TrabajadorConToken extends Trabajador {
   departamento_nombre: string;
   codigo_acceso: string | null;
+  encuesta_access_code: string | null;
   token_usado: boolean | null;
   token_existe: boolean;
 }
@@ -34,7 +35,7 @@ export async function fetchTrabajadoresDetalle(empresaId: string): Promise<Traba
       .eq('empresa_id', empresaId),
     supabase
       .from('invitaciones')
-      .select('email, has_completed')
+      .select('email, access_code, has_completed')
       .eq('empresa_id', empresaId),
   ]);
 
@@ -47,9 +48,9 @@ export async function fetchTrabajadoresDetalle(empresaId: string): Promise<Traba
     deptMap[d.id] = d.nombre;
   }
 
-  const invMap: Record<string, { has_completed: boolean }> = {};
+  const invMap: Record<string, { access_code: string | null; has_completed: boolean }> = {};
   for (const inv of invRes.data || []) {
-    if (inv.email) invMap[inv.email] = { has_completed: inv.has_completed };
+    if (inv.email) invMap[inv.email] = { access_code: (inv as { access_code?: string | null }).access_code ?? null, has_completed: inv.has_completed };
   }
 
   return (trabRes.data || []).map((t) => {
@@ -58,6 +59,7 @@ export async function fetchTrabajadoresDetalle(empresaId: string): Promise<Traba
       ...t,
       departamento_nombre: deptMap[t.departamento_id] || 'Sin departamento',
       codigo_acceso: (t as Trabajador & { codigo_acceso?: string | null }).codigo_acceso ?? null,
+      encuesta_access_code: invInfo?.access_code ?? null,
       token_existe: !!invInfo,
       token_usado: invInfo ? invInfo.has_completed : null,
     };

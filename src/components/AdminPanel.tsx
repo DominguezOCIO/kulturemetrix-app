@@ -22,6 +22,7 @@ import type { Empresa } from '@/lib/scoring';
 import { Logo } from './Logo';
 import { fetchDepartamentos, createDepartamento, deleteDepartamento, fetchTrabajadores, toggleDepartamentoCaptacion, fetchTrabajadoresDetalle, updateTrabajadorEmail, deleteTrabajador, getGlobalTrabajadoresStats } from '@/lib/trabajadores';
 import type { Departamento, TrabajadorConToken } from '@/lib/trabajadores';
+import { createAccesses } from '@/lib/campaign';
 import { supabase } from '@/lib/supabase';
 import { setupCompanyAuth, deleteCompanyAuth } from '@/lib/auth';
 
@@ -1027,6 +1028,9 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
   const [filterDept, setFilterDept] = useState('all');
 
   const [downloadedCsv, setDownloadedCsv] = useState(false);
+  const [creatingAccesses, setCreatingAccesses] = useState(false);
+  const [accessMessage, setAccessMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   const deptosUnicos = useMemo(() => Array.from(new Set(trabajadores.map((t) => t.departamento_nombre))).sort(), [trabajadores]);
   const filteredTrabajadores = useMemo(() => {
@@ -1059,14 +1063,53 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
     catch (err) { console.error(err); setDeleteTarget(null); }
   };
 
+  const handleCreateAccesses = async () => {
+    setCreatingAccesses(true);
+    setAccessMessage(null);
+    try {
+      const result = await createAccesses(empresaId);
+      if (result.success) {
+        const created = result.created ?? 0;
+        const skipped = result.skipped ?? 0;
+        setAccessMessage({
+          type: 'success',
+          text: created > 0
+            ? `Se crearon ${created} código${created !== 1 ? 's' : ''} de acceso.${skipped > 0 ? ` ${skipped} ya tenían código.` : ''}`
+            : 'Todos los trabajadores ya tienen un código de acceso.',
+        });
+        await load();
+        onStatsChanged();
+      } else {
+        setAccessMessage({ type: 'error', text: result.error || 'Error al crear los accesos.' });
+      }
+    } catch {
+      setAccessMessage({ type: 'error', text: 'Error de conexión.' });
+    } finally {
+      setCreatingAccesses(false);
+    }
+  };
+
+  const handleCopyAccess = (code: string) => {
+    const url = `${window.location.origin}/#/encuesta?token=${code}&empresa=${empresaId}`;
+    navigator.clipboard.writeText(url);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
   const handleDownloadCsv = () => {
     if (trabajadores.length === 0) return;
-    const rows = filteredTrabajadores.map((t) => [
-      `"${t.email.replace(/"/g, '""')}"`,
-      `"${t.departamento_nombre.replace(/"/g, '""')}"`,
-      `"${t.codigo_acceso || ''}"`,
-    ]);
-    const csv = ['Correo electrónico,Departamento,Código de Acceso', ...rows.map((r) => r.join(','))].join('\n');
+    const rows = filteredTrabajadores.map((t) => {
+      const encuestaUrl = t.encuesta_access_code
+        ? `${window.location.origin}/#/encuesta?token=${t.encuesta_access_code}&empresa=${empresaId}`
+        : '';
+      return [
+        `"${t.email.replace(/"/g, '""')}"`,
+        `"${t.departamento_nombre.replace(/"/g, '""')}"`,
+        `"${t.encuesta_access_code || ''}"`,
+        `"${encuestaUrl}"`,
+      ];
+    });
+    const csv = ['Correo electrónico,Departamento,Código de Encuesta,Enlace de Encuesta', ...rows.map((r) => r.join(','))].join('\n');
     const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -1087,7 +1130,15 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
         <div><h3 className="font-bold text-slate-900">Trabajadores registrados</h3><p className="text-xs text-slate-500">Lista en tiempo real de los correos registrados desde la Home.</p></div>
       </div>
       {trabajadores.length > 0 && (
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+          <button
+            onClick={handleCreateAccesses}
+            disabled={creatingAccesses}
+            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#205072] to-[#43B59C] px-4 py-2 text-sm font-semibold text-white transition hover:from-[#1a3f5e] hover:to-[#3a9d87] disabled:opacity-60"
+          >
+            {creatingAccesses ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+            Crear Accesos
+          </button>
           <button
             onClick={handleDownloadCsv}
             className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
@@ -1095,6 +1146,12 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
             {downloadedCsv ? <Check className="h-4 w-4 text-emerald-400" /> : <Download className="h-4 w-4" />}
             Descargar CSV de Trabajadores
           </button>
+        </div>
+      )}
+      {accessMessage && (
+        <div className={`mt-3 flex items-start gap-3 rounded-xl border p-3 ${accessMessage.type === 'success' ? 'border-emerald-200 bg-emerald-50' : 'border-red-200 bg-red-50'}`}>
+          {accessMessage.type === 'success' ? <Check className="h-4 w-4 flex-shrink-0 text-emerald-600" /> : <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-600" />}
+          <p className={`text-sm ${accessMessage.type === 'success' ? 'text-emerald-700' : 'text-red-700'}`}>{accessMessage.text}</p>
         </div>
       )}
       {loading ? (
@@ -1118,7 +1175,7 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
           ) : (
             <div className="mt-5 overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"><th className="px-3 py-2.5">Correo</th><th className="px-3 py-2.5">Departamento</th><th className="px-3 py-2.5">Código de Acceso</th><th className="px-3 py-2.5">Estado del código</th><th className="px-3 py-2.5 text-right">Acciones</th></tr></thead>
+                <thead><tr className="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"><th className="px-3 py-2.5">Correo</th><th className="px-3 py-2.5">Departamento</th><th className="px-3 py-2.5">Código de Encuesta</th><th className="px-3 py-2.5">Estado del código</th><th className="px-3 py-2.5 text-right">Acciones</th></tr></thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredTrabajadores.map((t) => (
                     <tr key={t.id} className="group hover:bg-slate-50 transition">
@@ -1132,10 +1189,19 @@ function TrabajadoresTable({ empresaId, onStatsChanged }: { empresaId: string; o
                       </td>
                       <td className="px-3 py-2.5"><span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600"><Tag className="h-3 w-3 text-[#43B59C]" />{t.departamento_nombre}</span></td>
                       <td className="px-3 py-2.5">
-                        {t.codigo_acceso ? (
-                          <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-50 px-2 py-1 font-mono text-xs font-semibold text-slate-700 border border-slate-200"><KeyRound className="h-3 w-3 text-slate-400" />{t.codigo_acceso}</span>
+                        {t.encuesta_access_code ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-50 px-2 py-1 font-mono text-xs font-semibold text-slate-700 border border-slate-200"><KeyRound className="h-3 w-3 text-slate-400" />{t.encuesta_access_code}</span>
+                            <button
+                              onClick={() => handleCopyAccess(t.encuesta_access_code!)}
+                              className="rounded p-1 text-slate-400 transition hover:bg-slate-100 hover:text-[#205072]"
+                              title="Copiar enlace de encuesta"
+                            >
+                              {copiedCode === t.encuesta_access_code ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                            </button>
+                          </div>
                         ) : (
-                          <span className="text-xs text-slate-300">—</span>
+                          <span className="text-xs text-slate-300">Sin acceso</span>
                         )}
                       </td>
                       <td className="px-3 py-2.5">
