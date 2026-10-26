@@ -381,16 +381,6 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                       </p>
                     </div>
                   </div>
-                  <div className="mt-4 flex items-start gap-3 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
-                    <Mail className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600" />
-                    <div>
-                      <p className="text-sm font-semibold text-emerald-800">Certificado en trámite de envío</p>
-                      <p className="mt-1 text-sm leading-relaxed text-emerald-700">
-                        El equipo de KULTUREMETRIX se pondrá en contacto contigo para enviarte el Certificado Oficial de Bienestar Corporativo de forma externa.
-                        No es necesario que lo descargues; lo recibirás a través del canal corporativo correspondiente.
-                      </p>
-                    </div>
-                  </div>
                 </div>
               ) : allCompleted && notaGlobal > 0 ? (
                 <div className="rounded-xl border-2 border-slate-200 bg-white p-6">
