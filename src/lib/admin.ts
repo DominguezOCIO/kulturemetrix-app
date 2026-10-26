@@ -120,7 +120,7 @@ export async function fetchEmpresaStats(empresaId: string): Promise<{ encuestas:
   if (respRes.error) throw respRes.error;
   if (tokenRes.error) throw tokenRes.error;
 
-  const encuestas = (respRes.data || []).reduce((acc, r) => acc + r.contador_respuestas, 0) / 4;
+  const encuestas = (respRes.data || []).reduce((acc, r) => acc + r.contador_respuestas, 0) / 5;
   const tokens = tokenRes.data?.length || 0;
   const tokensUsados = tokenRes.data?.filter((t) => t.has_completed).length || 0;
 
