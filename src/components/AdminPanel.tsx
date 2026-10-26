@@ -231,7 +231,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
 
   const totalMRR = empresas
     .filter((e) => e.estado_suscripcion === 'activa')
-    .reduce((acc, e) => acc + Number(e.precio_mensual || 0), 0);
+    .reduce((acc, e) => acc + Number(e.precio_mensual || 0) * 12, 0);
 
   const activeCount = empresas.filter((e) => e.estado_suscripcion === 'activa').length;
   const totalEncuestas = Object.values(statsCache).reduce((acc, s) => acc + s.encuestas, 0);
@@ -246,14 +246,14 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
       if (byPlan[plan] !== undefined) byPlan[plan] += 1;
       if (e.estado_suscripcion === 'activa') {
         if (activeByPlan[plan] !== undefined) activeByPlan[plan] += 1;
-        ingresoAnualTotal += Number(e.precio_mensual || 0) * 12;
+        ingresoAnualTotal += Number(e.precio_mensual || 0);
       }
     }
     const yearly: Record<number, number> = {};
     for (const e of empresas) {
       if (e.estado_suscripcion !== 'activa') continue;
       const year = e.fecha_alta ? new Date(e.fecha_alta).getFullYear() : new Date(e.created_at).getFullYear();
-      yearly[year] = (yearly[year] || 0) + Number(e.precio_mensual || 0) * 12;
+      yearly[year] = (yearly[year] || 0) + Number(e.precio_mensual || 0);
     }
     const years = Object.keys(yearly).map(Number).sort((a, b) => a - b);
     const historical = years.map((yr, idx) => {
@@ -518,7 +518,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
                             <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700"><AlertCircle className="h-3 w-3 text-amber-500" /> Sin Accesos</span>
                           )}
                         </td>
-                        <td className="px-5 py-4 font-medium text-slate-700">{Number(Number(emp.precio_mensual || 0) * 12).toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</td>
+                        <td className="px-5 py-4 font-medium text-slate-700">{Number(emp.precio_mensual || 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</td>
                         <td className="px-5 py-4"><div className="flex items-center gap-1 text-slate-600"><Users className="h-3.5 w-3.5 text-slate-400" /><span className="font-medium">{stats.encuestas}</span></div></td>
                         <td className="px-5 py-4"><button onClick={() => handleCopyKey(emp.api_key)} className="flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-1 font-mono text-xs text-slate-600 transition hover:bg-slate-200">{emp.api_key}{copiedKey === emp.api_key ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}</button></td>
                         <td className="px-5 py-4"><div className="flex items-center justify-end gap-2"><button onClick={() => { setEditing(emp); setShowForm(true); }} className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700" title="Editar"><Pencil className="h-4 w-4" /></button><button onClick={() => setDeleteConfirm(emp)} className="rounded-lg p-2 text-slate-500 transition hover:bg-red-50 hover:text-red-600" title="Eliminar"><Trash2 className="h-4 w-4" /></button></div></td>
@@ -883,7 +883,7 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
             </div>
           </div>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Anual</p><p className="mt-1 text-sm font-bold text-slate-900">{Number(Number(empresa.precio_mensual || 0) * 12).toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</p></div>
+            <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Anual</p><p className="mt-1 text-sm font-bold text-slate-900">{Number(empresa.precio_mensual || 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</p></div>
             <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Nota global</p><p className="mt-1 text-sm font-bold text-slate-900">{empresa.nota_global.toFixed(1)} / 100</p></div>
             <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Alta</p><p className="mt-1 text-sm font-bold text-slate-900">{empresa.fecha_alta || '—'}</p></div>
             <div className="rounded-xl bg-slate-50 p-3"><p className="text-xs text-slate-500">Renovación</p><p className="mt-1 text-sm font-bold text-slate-900">{empresa.fecha_renovacion || '—'}</p></div>
@@ -1213,7 +1213,7 @@ function EmpresaForm({ empresa, onSave, onCancel }: { empresa: AdminEmpresa | nu
             <div><label className="block text-sm font-medium text-slate-700">Estado</label><select value={form.estado_suscripcion} onChange={(e) => setForm({ ...form, estado_suscripcion: e.target.value })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"><option value="activa">Activa</option><option value="suspendida">Suspendida</option><option value="cancelada">Cancelada</option></select></div>
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
-            <div><label className="block text-sm font-medium text-slate-700">Precio anual (€)</label><input type="text" inputMode="decimal" value={form.precio_mensual ? (Number(form.precio_mensual) * 12).toString().replace('.', ',') : ''} onChange={(e) => { const v = e.target.value.replace(',', '.'); const n = v === '' || isNaN(Number(v)) ? 0 : Number(v); setForm({ ...form, precio_mensual: n / 12 }); }} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="Ej. 1.200,00" /><p className="mt-1 text-xs text-slate-400">Se guarda como precio anual internamente (12 meses)</p></div>
+            <div><label className="block text-sm font-medium text-slate-700">Precio anual (€)</label><input type="text" inputMode="decimal" value={form.precio_mensual ? Number(form.precio_mensual).toString().replace('.', ',') : ''} onChange={(e) => { const v = e.target.value.replace(',', '.'); const n = v === '' || isNaN(Number(v)) ? 0 : Number(v); setForm({ ...form, precio_mensual: n }); }} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="Ej. 1.200,00" /></div>
             <div><label className="block text-sm font-medium text-slate-700">Contacto (nombre)</label><input type="text" value={form.contacto_nombre || ''} onChange={(e) => setForm({ ...form, contacto_nombre: e.target.value })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="Ej. María García" /></div>
           </div>
           <div className="grid gap-5 sm:grid-cols-3">
