@@ -225,7 +225,7 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
             </div>
             <h2 className="text-3xl font-extrabold text-white sm:text-4xl">¡ENHORABUENA, APROBASTE!</h2>
             <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-emerald-50 sm:text-lg">
-              Tu <strong className="font-bold text-white">CERTIFICADO KULTUREMETRIX</strong> ya está en marcha. Tus trabajadores te han transmitido que se sienten en un entorno corporativo óptimo, favorable y que cuida su bienestar laboral. ¡Sigue así! En 12 meses volvemos a medir el estado general del mayor valor que posees, el humano. El equipo de KULTUREMETRIX te enviará el certificado oficial a través de los canales corporativos correspondientes.
+              Tu <strong className="font-bold text-white">CERTIFICADO KULTUREMETRIX</strong> ya está en marcha. Tus trabajadores te han transmitido que se sienten en un entorno corporativo óptimo, favorable y que cuida su bienestar laboral. ¡Sigue así! En 12 meses volvemos a medir el estado general del mayor valor que posees, El humano. KULTUREMETRIX te enviará el certificado oficial a través de los canales correspondientes.
             </p>
           </div>
         )}
