@@ -93,7 +93,7 @@ Deno.serve(async (req: Request) => {
     // Verify this user is linked to a company
     const { data: empresa } = await adminClient
       .from("empresas")
-      .select("id, nombre, api_key, estado_suscripcion, nota_global, auth_user_id")
+      .select("id, nombre, api_key, estado_suscripcion, nota_global, auth_user_id, cuenta_activa")
       .eq("auth_user_id", authData.user.id)
       .maybeSingle();
 
@@ -110,6 +110,15 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ error: "Esta cuenta no está vinculada a ninguna empresa." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // Check if the admin has deactivated this company's account
+    if (empresa.cuenta_activa === false) {
+      await authClient.auth.signOut();
+      return new Response(
+        JSON.stringify({ error: "El acceso de tu empresa está desactivado. Contacta con el administrador para reactivarlo." }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }

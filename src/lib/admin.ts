@@ -13,6 +13,7 @@ export interface AdminEmpresa {
   contacto_email: string | null;
   contacto_nombre: string | null;
   captacion_activa: boolean;
+  cuenta_activa: boolean;
   auth_user_id: string | null;
   created_at: string;
 }
@@ -27,6 +28,7 @@ export interface AdminEmpresaInput {
   fecha_renovacion: string | null;
   contacto_email: string | null;
   contacto_nombre: string | null;
+  cuenta_activa?: boolean;
 }
 
 function generateApiKey(): string {
@@ -50,7 +52,7 @@ function parseSupabaseError(err: any): string {
 export async function fetchAllEmpresas(): Promise<AdminEmpresa[]> {
   const { data, error } = await supabase
     .from('empresas')
-    .select('id, nombre, api_key, estado_suscripcion, nota_global, plan_suscripcion, precio_mensual, fecha_alta, fecha_renovacion, contacto_email, contacto_nombre, captacion_activa, auth_user_id, created_at')
+    .select('id, nombre, api_key, estado_suscripcion, nota_global, plan_suscripcion, precio_mensual, fecha_alta, fecha_renovacion, contacto_email, contacto_nombre, captacion_activa, cuenta_activa, auth_user_id, created_at')
     .order('created_at', { ascending: false });
   if (error) throw new Error(parseSupabaseError(error));
   return (data || []) as AdminEmpresa[];
@@ -71,7 +73,7 @@ export async function createEmpresa(input: AdminEmpresaInput): Promise<AdminEmpr
       contacto_email: input.contacto_email || null,
       contacto_nombre: input.contacto_nombre || null,
     })
-    .select('id, nombre, api_key, estado_suscripcion, nota_global, plan_suscripcion, precio_mensual, fecha_alta, fecha_renovacion, contacto_email, contacto_nombre, captacion_activa, auth_user_id, created_at')
+    .select('id, nombre, api_key, estado_suscripcion, nota_global, plan_suscripcion, precio_mensual, fecha_alta, fecha_renovacion, contacto_email, contacto_nombre, captacion_activa, cuenta_activa, auth_user_id, created_at')
     .single();
   if (error) {
     throw new Error(parseSupabaseError(error));

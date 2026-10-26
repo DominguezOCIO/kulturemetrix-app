@@ -303,6 +303,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
         try {
           const result = await setupCompanyAuth(adminToken, nueva.id, input.contacto_email.trim(), tempPassword);
           if (result.success) {
+            await updateEmpresa(nueva.id, { cuenta_activa: true });
             setCreatedCreds({ email: input.contacto_email.trim().toLowerCase(), password: tempPassword, nombre: input.nombre });
           }
         } catch (err) {
@@ -319,6 +320,20 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
     await deleteEmpresa(id);
     setDeleteConfirm(null);
     await load();
+  };
+
+  const [togglingCuentaId, setTogglingCuentaId] = useState<string | null>(null);
+  const handleToggleCuenta = async (emp: AdminEmpresa) => {
+    if (!emp.auth_user_id) return;
+    setTogglingCuentaId(emp.id);
+    try {
+      await updateEmpresa(emp.id, { cuenta_activa: !emp.cuenta_activa });
+      await load();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTogglingCuentaId(null);
+    }
   };
 
   const envioEmpresaIds = useMemo(() => new Set(certEnvios.map((e) => e.empresa_id)), [certEnvios]);
@@ -524,7 +539,15 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
                         </td>
                         <td className="px-5 py-4">
                           {emp.auth_user_id ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700"><ShieldCheck className="h-3 w-3 text-slate-500" /> Cuenta Activa</span>
+                            <button
+                              onClick={() => handleToggleCuenta(emp)}
+                              disabled={togglingCuentaId === emp.id}
+                              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold transition ${emp.cuenta_activa ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'}`}
+                              title={emp.cuenta_activa ? 'Click para desactivar el acceso de la empresa' : 'Click para reactivar el acceso de la empresa'}
+                            >
+                              {togglingCuentaId === emp.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <ShieldCheck className="h-3 w-3" />}
+                              {emp.cuenta_activa ? 'Cuenta Activa' : 'Cuenta Inactiva'}
+                            </button>
                           ) : (
                             <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700"><AlertCircle className="h-3 w-3 text-amber-500" /> Sin Accesos</span>
                           )}
