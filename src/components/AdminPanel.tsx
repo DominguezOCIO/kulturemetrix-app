@@ -294,10 +294,11 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
   };
 
   const handleSave = async (input: AdminEmpresaInput, id?: string) => {
+    const syncedInput = { ...input, cuenta_activa: input.estado_suscripcion === 'activa' };
     if (id) {
-      await updateEmpresa(id, input);
+      await updateEmpresa(id, syncedInput);
     } else {
-      const nueva = await createEmpresa(input);
+      const nueva = await createEmpresa(syncedInput);
       if (adminToken && input.contacto_email) {
         const tempPassword = generateTempPassword();
         try {
@@ -327,7 +328,8 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
     if (!emp.auth_user_id) return;
     setTogglingCuentaId(emp.id);
     try {
-      await updateEmpresa(emp.id, { cuenta_activa: !emp.cuenta_activa });
+      const newActiv = !emp.cuenta_activa;
+      await updateEmpresa(emp.id, { cuenta_activa: newActiv, estado_suscripcion: newActiv ? 'activa' : 'suspendida' });
       await load();
     } catch (err) {
       console.error(err);
@@ -850,11 +852,24 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
 
   const [captacionActiva, setCaptacionActiva] = useState(empresa.captacion_activa ?? false);
   const [toggling, setToggling] = useState(false);
+  const [cuentaActiva, setCuentaActiva] = useState(empresa.cuenta_activa ?? false);
+  const [togglingCuenta, setTogglingCuenta] = useState(false);
 
   const handleToggleCaptacion = async () => {
     setToggling(true);
     try { const newValue = !captacionActiva; await toggleCaptacion(empresa.id, newValue); setCaptacionActiva(newValue); }
     catch (err) { console.error(err); } finally { setToggling(false); }
+  };
+
+  const handleToggleCuentaDetail = async () => {
+    if (!hasAuth) return;
+    setTogglingCuenta(true);
+    try {
+      const newValue = !cuentaActiva;
+      await updateEmpresa(empresa.id, { cuenta_activa: newValue, estado_suscripcion: newValue ? 'activa' : 'suspendida' });
+      setCuentaActiva(newValue);
+      onStatsChanged();
+    } catch (err) { console.error(err); } finally { setTogglingCuenta(false); }
   };
 
   const handleSetupAuth = async () => {
@@ -939,9 +954,20 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
               </div>
             </div>
             {hasAuth ? (
-              <button onClick={handleDeleteAuth} disabled={authSaving} className="flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-50">
-                <Trash2 className="h-4 w-4" /> Eliminar acceso
-              </button>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handleToggleCuentaDetail}
+                  disabled={togglingCuenta}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50 ${cuentaActiva ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'}`}
+                  title={cuentaActiva ? 'Click para desactivar el acceso de la empresa' : 'Click para reactivar el acceso de la empresa'}
+                >
+                  {togglingCuenta ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                  {cuentaActiva ? 'Cuenta Activa' : 'Cuenta Inactiva'}
+                </button>
+                <button onClick={handleDeleteAuth} disabled={authSaving} className="flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-50">
+                  <Trash2 className="h-4 w-4" /> Eliminar acceso
+                </button>
+              </div>
             ) : (
               <button onClick={() => setAuthSetupOpen(true)} className="flex items-center gap-2 rounded-lg bg-[#205072] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1a3f5e]">
                 <KeyRound className="h-4 w-4" /> Crear credenciales
