@@ -1374,6 +1374,11 @@ function EconomicPanel({ econStats }: { econStats: EconStats }) {
               </div>
               <p className="mt-3 text-3xl font-bold text-slate-900">{econStats.byPlan[p.key] || 0}</p>
               <p className="text-xs text-slate-500">Empresas en plan {p.label} · {p.refPrice}</p>
+              <p className="mt-1 text-xs font-semibold text-slate-700">
+                {econStats.total > 0
+                  ? `${Math.round(((econStats.byPlan[p.key] || 0) / econStats.total) * 1000) / 10}% del total`
+                  : '—'}
+              </p>
             </div>
           ))}
         </div>
