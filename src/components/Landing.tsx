@@ -593,7 +593,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
                         <span>{item.question}</span>
                         <ChevronDown className="h-5 w-5 flex-shrink-0 text-[#43B59C] transition-transform duration-300 group-open:rotate-180" />
                       </summary>
-                      <p className="max-w-4xl pb-5 pr-8 text-sm leading-7 text-slate-600">{item.answer}</p>
+                      <div className="max-w-4xl pb-5 pr-8 text-sm leading-7 text-slate-600">{item.answer}</div>
                     </details>
                   ))}
                 </div>
@@ -662,6 +662,19 @@ const FAQ_SECTIONS = [
       {
         question: '¿Qué aspectos del bienestar corporativo evalúa la plataforma?',
         answer: 'Las métricas cubren áreas clave como la salud mental y emocional, el equilibrio entre vida laboral y personal, la carga de trabajo, la calidad del liderazgo, la cultura de inclusión y los niveles generales de motivación y burnout.',
+      },
+      {
+        question: '¿De dónde salen las preguntas de la auditoría?',
+        answer: (
+          <div className="space-y-3">
+            <p>Las dimensiones analíticas evaluadas en los cuestionarios de KULTUREMETRIX no responden a formulaciones arbitrarias. La arquitectura metodológica se encuentra estrictamente alineada con el Marco Estratégico de la UE en materia de Salud y Seguridad en el Trabajo y los parámetros de bienestar laboral comunitarios, respondiendo a un riguroso &lsquo;porqué&rsquo; científico y normativo:</p>
+            <ul className="space-y-2.5 pl-1">
+              <li className="flex gap-2"><span className="text-[#43B59C] mt-0.5">•</span><span><strong className="font-semibold text-[#205072]">Directiva Marco Europea (Directiva 89/391/CEE):</strong> Da cumplimiento exacto a la obligación legal imperativa impuesta a las empresas de identificar, evaluar y prevenir proactivamente los riesgos psicosociales y salvaguardar de manera efectiva la salud mental de las personas trabajadoras.</span></li>
+              <li className="flex gap-2"><span className="text-[#43B59C] mt-0.5">•</span><span><strong className="font-semibold text-[#205072]">Factores Clínico-Laborales Evaluados:</strong> Los reactivos del cuestionario miden con precisión técnica las dimensiones validadas por los estándares del sector: Carga y Ritmo de Trabajo, Autonomía y Control sobre las tareas, Calidad del Liderazgo, Apoyo Social, Entorno Físico Operativo y Conciliación de la vida personal y profesional.</span></li>
+              <li className="flex gap-2"><span className="text-[#43B59C] mt-0.5">•</span><span><strong className="font-semibold text-[#205072]">Documento Técnico Oficial:</strong> La rigurosidad científica aplicada confiere a los informes resultantes el carácter de documento técnico de evaluación climática plenamente válido y auditable ante cualquier Inspección de Trabajo o auditoría de estándares internacionales (ej. criterios de ESG).</span></li>
+            </ul>
+          </div>
+        ),
       },
       {
         question: '¿Cuánto tiempo se necesita para completar una auditoría interna?',
