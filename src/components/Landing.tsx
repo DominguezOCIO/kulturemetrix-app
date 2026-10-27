@@ -537,7 +537,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
             Quiero Auditar Mi Empresa
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-300">
-            Solicita una auditoría externa del bienestar corporativo de tu organización. Recibirás un certificado verificable que avala tu compromiso real con las personas.
+            Solicita una auditoría externa del bienestar corporativo de tu organización.
           </p>
           <button
             onClick={openAuditModal}
