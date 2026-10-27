@@ -526,6 +526,45 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
         </div>
       </section>
 
+      {/* Sección: Quiero Auditar Mi Empresa */}
+      <section id="auditar-empresa" className="bg-gradient-to-br from-[#205072] to-[#0f172a] py-24">
+        <div className="mx-auto max-w-4xl px-6 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-orange-400/40 bg-orange-500/10 px-4 py-1.5">
+            <Award className="h-4 w-4 text-orange-400" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-orange-300">Comienza tu auditoría hoy</span>
+          </div>
+          <h2 className="mt-6 text-4xl font-extrabold text-white sm:text-5xl tracking-tight">
+            Quiero Auditar Mi Empresa
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-300">
+            Solicita una auditoría externa del bienestar corporativo de tu organización. Recibirás un certificado verificable que avala tu compromiso real con las personas.
+          </p>
+          <button
+            onClick={openAuditModal}
+            className="mt-10 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 px-10 py-5 text-lg font-bold text-white shadow-xl shadow-orange-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/40 hover:from-orange-400 hover:to-red-500 hover:scale-[1.03]"
+          >
+            Solicitar auditoría
+            <ArrowRight className="h-5 w-5" />
+          </button>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-emerald-400" />
+              <span className="text-sm font-medium text-slate-300">100% anónimo</span>
+            </div>
+            <div className="hidden h-4 w-px bg-slate-600 sm:block" />
+            <div className="flex items-center gap-2">
+              <Lock className="h-4 w-4 text-cyan-400" />
+              <span className="text-sm font-medium text-slate-300">Cumplimiento RGPD</span>
+            </div>
+            <div className="hidden h-4 w-px bg-slate-600 sm:block" />
+            <div className="flex items-center gap-2">
+              <Award className="h-4 w-4 text-orange-400" />
+              <span className="text-sm font-medium text-slate-300">Certificado verificable</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Preguntas frecuentes */}
       <section id="faq" className="bg-slate-50 py-24">
         <div className="mx-auto max-w-5xl px-6">
