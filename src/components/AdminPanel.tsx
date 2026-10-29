@@ -4,7 +4,7 @@ import {
   DollarSign, Calendar, Mail, Copy, Check, AlertCircle,
   ArrowLeft, ShieldCheck, ShieldAlert, Activity, ChevronRight, Tag, Power,
   Award, BarChart3, PieChart, Target, Lock, KeyRound, Eye, EyeOff,
-  Download, CheckCircle2, Clock, Send, TrendingUp, Wallet,
+  Download, CheckCircle2, Clock, Send, TrendingUp, Wallet, Bot,
 } from 'lucide-react';
 import {
   PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip as ReTooltip,
@@ -18,6 +18,7 @@ import {
 } from '@/lib/admin';
 import type { AdminEmpresa, AdminEmpresaInput, SolicitudAuditoria, CertificateEnvio } from '@/lib/admin';
 import { CampaignPanel } from './CampaignPanel';
+import { AgentsCentralPanel } from './AgentsCentralPanel';
 import type { Empresa } from '@/lib/scoring';
 import { Logo } from './Logo';
 import { fetchDepartamentos, createDepartamento, deleteDepartamento, fetchTrabajadores, toggleDepartamentoCaptacion, fetchTrabajadoresDetalle, updateTrabajadorEmail, deleteTrabajador, getGlobalTrabajadoresStats } from '@/lib/trabajadores';
@@ -183,7 +184,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
   const [deleteConfirm, setDeleteConfirm] = useState<AdminEmpresa | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [selectedEmpresa, setSelectedEmpresa] = useState<AdminEmpresa | null>(null);
-  const [tab, setTab] = useState<'empresas' | 'leads'>('empresas');
+  const [tab, setTab] = useState<'empresas' | 'leads' | 'agentes'>('empresas');
 
   const [globalTrabStats, setGlobalTrabStats] = useState({ total: 0, completados: 0, pendientes: 0, participacion: 0 });
   const [loadingTrabStats, setLoadingTrabStats] = useState(true);
@@ -406,6 +407,12 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
               >
                 <Mail className="h-4 w-4" /> Solicitudes de Auditoría
               </button>
+              <button
+                onClick={() => setTab('agentes')}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === 'agentes' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              >
+                <Bot className="h-4 w-4" /> Central de Agentes IA
+              </button>
               {tab === 'empresas' && (
                 <button
                   onClick={() => { setEditing(null); setShowForm(true); }}
@@ -420,7 +427,9 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
       </div>
 
       <div className="mx-auto max-w-7xl px-6 py-8">
-        {tab === 'leads' ? (
+        {tab === 'agentes' ? (
+          <AgentsCentralPanel onBack={() => setTab('empresas')} />
+        ) : tab === 'leads' ? (
           <SolicitudesAuditoriaPanel />
         ) : (
           <>

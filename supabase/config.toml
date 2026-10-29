@@ -12,3 +12,12 @@ verify_jwt = false
 
 [functions.send-audit-notification]
 verify_jwt = false
+
+[functions.ia-webhook]
+verify_jwt = true
+
+[functions.ia-leads]
+verify_jwt = false
+
+[functions.ia-press]
+verify_jwt = false

@@ -20,6 +20,18 @@
     "validate-token": {
       "hasChanged": false,
       "hash": "5f425fd981595ee4b7f013134cb0f6b6777f0e0adc0f0c01981b278e7cfd0bae"
+    },
+    "ia-leads": {
+      "hasChanged": false,
+      "hash": "5577b426a00822281ef3fdfce0094c96d32185a1cd25305d79787265165935b5"
+    },
+    "ia-press": {
+      "hasChanged": false,
+      "hash": "0fce60c97a3fcc75160021d1496a1f49516f9881f6f4d23eeeb3855bd194fa38"
+    },
+    "ia-webhook": {
+      "hasChanged": false,
+      "hash": "e6745e3813851cde308029db6a41d03f57f1f22ce13a5f4a18a68aecdb45471a"
     }
   }
 }
