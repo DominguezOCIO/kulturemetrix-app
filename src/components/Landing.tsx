@@ -549,7 +549,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
           <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-emerald-400" />
-              <span className="text-sm font-medium text-slate-300">100% anónimo</span>
+              <span className="text-sm font-medium text-slate-300">100% ANÓNIMO</span>
             </div>
             <div className="hidden h-4 w-px bg-slate-600 sm:block" />
             <div className="flex items-center gap-2">
