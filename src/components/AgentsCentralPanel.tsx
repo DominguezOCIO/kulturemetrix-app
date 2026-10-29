@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Bot, Power, Settings, Inbox, Terminal, Loader2, RefreshCw, Send, Pencil, X,
   CheckCircle2, Ban, Mail, Newspaper, TrendingUp, Users, Eye, MousePointerClick,
-  CalendarCheck, Megaphone, ChevronRight, Activity, AlertCircle, Cpu, Globe,
+  CalendarCheck, Megaphone, ChevronRight, Activity, AlertCircle, Cpu, Globe, Gauge,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as ReTooltip,
@@ -250,6 +250,8 @@ function ConfigTab() {
   const [keywords, setKeywords] = useState<string[]>([]);
   const [keywordInput, setKeywordInput] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('');
+  const [limiteEmpresas, setLimiteEmpresas] = useState(50);
+  const [limiteMedios, setLimiteMedios] = useState(7);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -264,6 +266,8 @@ function ConfigTab() {
         setTiposMedio(c.tipos_medio || []);
         setKeywords(c.keywords_rrpp || []);
         setWebhookUrl(c.webhook_url || '');
+        setLimiteEmpresas(c.limite_diario_empresas ?? 50);
+        setLimiteMedios(c.limite_diario_medios ?? 7);
       }
     } catch (err) {
       console.error(err);
@@ -293,6 +297,7 @@ function ConfigTab() {
       await updateIaConfig({
         paises, sectores, tamano_min: tamanoMin, tamano_max: tamanoMax,
         tipos_medio: tiposMedio, keywords_rrpp: keywords, webhook_url: webhookUrl,
+        limite_diario_empresas: limiteEmpresas, limite_diario_medios: limiteMedios,
       });
       setMessage({ type: 'ok', text: 'Configuración guardada correctamente.' });
     } catch (err: any) {
@@ -417,6 +422,29 @@ function ConfigTab() {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Límites Diarios */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600"><Gauge className="h-4 w-4" /></div>
+          <h3 className="font-bold text-slate-900">Límites Diarios de Búsqueda</h3>
+        </div>
+        <p className="mt-1 text-xs text-slate-500">Controla la velocidad y seguridad de las búsquedas automáticas de los agentes.</p>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Límite diario de empresas a buscar</label>
+            <input type="number" min={1} value={limiteEmpresas} onChange={(e) => setLimiteEmpresas(Math.max(1, Number(e.target.value)))}
+              className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20" />
+            <p className="mt-1 text-xs text-slate-400">Defecto: 50 empresas/día</p>
+          </div>
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Límite diario de medios/blogs a rastrear</label>
+            <input type="number" min={1} value={limiteMedios} onChange={(e) => setLimiteMedios(Math.max(1, Number(e.target.value)))}
+              className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20" />
+            <p className="mt-1 text-xs text-slate-400">Defecto: 7 medios/día</p>
           </div>
         </div>
       </div>

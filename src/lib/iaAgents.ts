@@ -59,6 +59,8 @@ export interface IaConfig {
   webhook_url: string;
   activo: boolean;
   ultima_activacion: string | null;
+  limite_diario_empresas: number;
+  limite_diario_medios: number;
 }
 
 export interface IaLog {
@@ -84,7 +86,7 @@ export const TIPOS_MEDIO_OPTIONS = [
   'Prensa Digital', 'Blogs RR.HH.', 'Newsletters Substack/LinkedIn', 'Revistas Empresariales', 'Podcasts',
 ];
 
-const CONFIG_COLUMNS = 'id, paises, sectores, tamano_min, tamano_max, tipos_medio, keywords_rrpp, webhook_url, activo, ultima_activacion';
+const CONFIG_COLUMNS = 'id, paises, sectores, tamano_min, tamano_max, tipos_medio, keywords_rrpp, webhook_url, activo, ultima_activacion, limite_diario_empresas, limite_diario_medios';
 
 function parseError(err: any): string {
   if (!err) return 'Error desconocido.';
@@ -193,6 +195,8 @@ export async function triggerIaCentral(): Promise<{ ok: boolean; message: string
       tamano_max: config.tamano_max,
       tipos_medio: config.tipos_medio,
       keywords_rrpp: config.keywords_rrpp,
+      limite_diario_empresas: config.limite_diario_empresas,
+      limite_diario_medios: config.limite_diario_medios,
     },
     agentes: [1, 2, 3, 4, 5, 6, 7],
   };
