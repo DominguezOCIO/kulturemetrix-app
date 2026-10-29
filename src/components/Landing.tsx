@@ -118,11 +118,11 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
             <blockquote className="mx-auto mt-12 max-w-3xl rounded-2xl border-l-4 border-orange-500 bg-gradient-to-br from-orange-500/10 via-red-600/5 to-transparent px-6 py-6 text-left shadow-lg shadow-orange-500/5 backdrop-blur sm:px-8 sm:py-8">
               <span className="block text-4xl leading-none text-orange-400/60" aria-hidden="true">&ldquo;</span>
               <p className="-mt-3 text-sm font-bold uppercase tracking-wide text-orange-200 sm:text-base md:text-lg leading-relaxed">
-                Viví el corazón de las grandes corporaciones y presencié cómo el tiempo y el talento se gestionaban como recursos desechables. Ahí comprendí que el modelo actual de gestión humana está roto. De esa frustración nace <span className="text-white">KultureMetrix</span>: una solución tecnológica justa, humana y valiente, diseñada para medir y cuidar el bienestar del activo más valioso de cualquier organización: sus personas.
+                Reemplazar a un empleado quemado cuesta hasta el doble de su sueldo anual. Diseñamos <span className="text-white">KultureMetrix</span> para erradicar el burnout de raíz mediante micro-pulsos automatizados de 5 minutos, blindando la retención y certificando a las empresas con salud laboral real.
               </p>
               <span className="mt-3 block text-4xl leading-none text-right text-orange-400/60" aria-hidden="true">&rdquo;</span>
               <footer className="mt-3 text-right text-sm font-semibold uppercase tracking-wide text-orange-300/80 sm:text-base">
-                — Fran Domínguez, CEO DE KULTUREMETRIX
+                — FOUNDER&CEO KULTUREMETRIX
               </footer>
             </blockquote>
           </div>
@@ -372,10 +372,10 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
             <PricingCard
               name="Plan Crecimiento"
               tier="PYME"
-              range="50 a 149 empleados"
-              price="99€"
+              range="50 a 150 empleados"
+              price="199€"
               priceUnit="/ mes"
-              secondary="Facturado anualmente: 1.188€ + IVA"
+              secondary="Facturado anualmente: 2.388€ + IVA"
               features={[
                 { icon: <CheckCircle2 className="h-4 w-4" />, text: 'Cuestionarios: Cobertura total para organizaciones de hasta 149 trabajadores.' },
                 { icon: <Lock className="h-4 w-4" />, text: 'Acceso: Credenciales de acceso único para la gestión del plan.' },
@@ -393,10 +393,10 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
             <PricingCard
               name="Plan Consolidación"
               tier="Corporate"
-              range="150 a 499 empleados"
-              price="249€"
+              range="151 a 500 empleados"
+              price="499€"
               priceUnit="/ mes"
-              secondary="Facturado anualmente: 2.988€ + IVA"
+              secondary="Facturado anualmente: 5.988€ + IVA"
               features={[
                 { icon: <CheckCircle2 className="h-4 w-4" />, text: 'Incluye: Todo el alcance y beneficios contemplados en el Plan PYME.' },
                 { icon: <Users className="h-4 w-4" />, text: 'Conferencias Corporativas: Sesiones presenciales impartidas por el CEO de KULTUREMETRIX (30 min aprox.), previas a la apertura de la campaña de auditoría. Flexibilidad de ejecución en formato grupal unificado o segmentado por departamentos, según las directrices de la empresa contratante, en la sede central designada (dentro de España).' },
@@ -411,8 +411,8 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
               name="Plan Enterprise"
               tier="Enterprise"
               range="Más de 500 empleados"
-              price="Desde 499€"
-              priceUnit="/ mes"
+              price="*CONSULTAR"
+              priceUnit=""
               secondary="Contrato personalizado a medida"
               features={[
                 { icon: <CheckCircle2 className="h-4 w-4" />, text: 'Incluye: Todo el alcance corporativo y beneficios del Plan CORPORATE.' },
@@ -559,7 +559,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
             <div className="hidden h-4 w-px bg-slate-600 sm:block" />
             <div className="flex items-center gap-2">
               <Award className="h-4 w-4 text-orange-400" />
-              <span className="text-sm font-medium text-slate-300">Certificado verificable</span>
+              <span className="text-sm font-medium text-slate-300">Certificado ANUAL</span>
             </div>
           </div>
         </div>
