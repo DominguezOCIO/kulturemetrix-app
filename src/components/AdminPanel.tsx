@@ -185,6 +185,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [selectedEmpresa, setSelectedEmpresa] = useState<AdminEmpresa | null>(null);
   const [tab, setTab] = useState<'empresas' | 'leads' | 'agentes'>('empresas');
+  const [regionFilter, setRegionFilter] = useState<'todos' | 'España' | 'LATAM'>('todos');
 
   const [globalTrabStats, setGlobalTrabStats] = useState({ total: 0, completados: 0, pendientes: 0, participacion: 0 });
   const [loadingTrabStats, setLoadingTrabStats] = useState(true);
@@ -238,12 +239,18 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
   const activeCount = empresas.filter((e) => e.estado_suscripcion === 'activa').length;
   const totalEncuestas = Object.values(statsCache).reduce((acc, s) => acc + s.encuestas, 0);
 
+  const regionFilteredEmpresas = useMemo(() => {
+    if (regionFilter === 'todos') return empresas;
+    if (regionFilter === 'España') return empresas.filter((e) => (e.pais || 'España') === 'España');
+    return empresas.filter((e) => e.pais && e.pais !== 'España');
+  }, [empresas, regionFilter]);
+
   const econStats = useMemo(() => {
-    const total = empresas.length;
+    const total = regionFilteredEmpresas.length;
     const byPlan = { starter: 0, pro: 0, enterprise: 0 } as Record<string, number>;
     const activeByPlan = { starter: 0, pro: 0, enterprise: 0 } as Record<string, number>;
     let ingresoAnualTotal = 0;
-    for (const e of empresas) {
+    for (const e of regionFilteredEmpresas) {
       const plan = (e.plan_suscripcion || 'starter').toLowerCase();
       if (byPlan[plan] !== undefined) byPlan[plan] += 1;
       if (e.estado_suscripcion === 'activa') {
@@ -252,7 +259,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
       }
     }
     const yearly: Record<number, number> = {};
-    for (const e of empresas) {
+    for (const e of regionFilteredEmpresas) {
       if (e.estado_suscripcion !== 'activa') continue;
       const year = e.fecha_alta ? new Date(e.fecha_alta).getFullYear() : new Date(e.created_at).getFullYear();
       yearly[year] = (yearly[year] || 0) + Number(e.precio_mensual || 0);
@@ -265,10 +272,10 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
       return { year: String(yr), ingreso, diffPct };
     });
     return { total, byPlan, activeByPlan, ingresoAnualTotal, historical };
-  }, [empresas]);
+  }, [regionFilteredEmpresas]);
 
   const annualStats = useMemo(() => {
-    const empresasConEncuestas = empresas.filter((e) => {
+    const empresasConEncuestas = regionFilteredEmpresas.filter((e) => {
       const s = statsCache[e.id];
       return s && s.encuestas > 0;
     });
@@ -277,12 +284,12 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
       ? (empresasCertificadas.length / empresasConEncuestas.length) * 100
       : 0;
     return {
-      totalAltas: empresas.length,
+      totalAltas: regionFilteredEmpresas.length,
       totalConEncuestas: empresasConEncuestas.length,
       totalCertificadas: empresasCertificadas.length,
       tasaExito: Math.round(tasaExito * 10) / 10,
     };
-  }, [empresas, statsCache]);
+  }, [regionFilteredEmpresas, statsCache]);
 
   const pieData = [
     { name: 'Certificadas (≥70)', value: annualStats.totalCertificadas, color: '#059669' },
@@ -441,9 +448,22 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
         </div>
 
         <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-slate-400" />
-            <h2 className="text-lg font-bold text-slate-900">Dashboard Analítico Global Anual</h2>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-slate-400" />
+              <h2 className="text-lg font-bold text-slate-900">Dashboard Analítico Global Anual</h2>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-lg bg-slate-100 p-1">
+              {(['todos', 'España', 'LATAM'] as const).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setRegionFilter(r)}
+                  className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${regionFilter === r ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  {r === 'todos' ? 'Todos' : r}
+                </button>
+              ))}
+            </div>
           </div>
           <p className="mt-1 text-sm text-slate-500">Resumen del rendimiento del proceso de auditoría y certificación.</p>
 
@@ -1295,6 +1315,7 @@ function EmpresaForm({ empresa, onSave, onCancel }: { empresa: AdminEmpresa | nu
     plan_suscripcion: empresa?.plan_suscripcion || 'starter', precio_mensual: empresa ? Number(empresa.precio_mensual) : 0,
     fecha_alta: empresa?.fecha_alta || new Date().toISOString().slice(0, 10), fecha_renovacion: empresa?.fecha_renovacion || '',
     contacto_email: empresa?.contacto_email || '', contacto_nombre: empresa?.contacto_nombre || '',
+    pais: empresa?.pais || 'España',
   });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -1328,7 +1349,41 @@ function EmpresaForm({ empresa, onSave, onCancel }: { empresa: AdminEmpresa | nu
             <div><label className="block text-sm font-medium text-slate-700">Email de contacto *</label><input type="email" value={form.contacto_email || ''} onChange={(e) => setForm({ ...form, contacto_email: e.target.value })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="contacto@empresa.com" /></div>
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-slate-700">País</label>
+              <select value={form.pais || 'España'} onChange={(e) => setForm({ ...form, pais: e.target.value })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20">
+                <optgroup label="España">
+                  <option value="España">España</option>
+                </optgroup>
+                <optgroup label="LATAM">
+                  <option value="Argentina">Argentina</option>
+                  <option value="Bolivia">Bolivia</option>
+                  <option value="Brasil">Brasil</option>
+                  <option value="Chile">Chile</option>
+                  <option value="Colombia">Colombia</option>
+                  <option value="Costa Rica">Costa Rica</option>
+                  <option value="Cuba">Cuba</option>
+                  <option value="Ecuador">Ecuador</option>
+                  <option value="El Salvador">El Salvador</option>
+                  <option value="Guatemala">Guatemala</option>
+                  <option value="Haití">Haití</option>
+                  <option value="Honduras">Honduras</option>
+                  <option value="México">México</option>
+                  <option value="Nicaragua">Nicaragua</option>
+                  <option value="Panamá">Panamá</option>
+                  <option value="Paraguay">Paraguay</option>
+                  <option value="Perú">Perú</option>
+                  <option value="República Dominicana">República Dominicana</option>
+                  <option value="Uruguay">Uruguay</option>
+                  <option value="Venezuela">Venezuela</option>
+                  <option value="Puerto Rico">Puerto Rico</option>
+                  <option value="Belice">Belice</option>
+                </optgroup>
+              </select>
+            </div>
             <div><label className="flex items-center gap-1.5 text-sm font-medium text-slate-700"><Calendar className="h-3.5 w-3.5" /> Fecha de alta</label><input type="date" value={form.fecha_alta || ''} onChange={(e) => setForm({ ...form, fecha_alta: e.target.value || null })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" /></div>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
             <div><label className="flex items-center gap-1.5 text-sm font-medium text-slate-700"><Calendar className="h-3.5 w-3.5" /> Próxima renovación</label><input type="date" value={form.fecha_renovacion || ''} onChange={(e) => setForm({ ...form, fecha_renovacion: e.target.value || null })} className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20" /></div>
           </div>
           {!empresa && (<div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4"><Mail className="h-5 w-5 flex-shrink-0 text-blue-600" /><p className="text-xs text-blue-700">Al crear la empresa se generará automáticamente una cuenta de acceso con el email de contacto y una contraseña temporal que podrás compartir con la empresa.</p></div>)}
