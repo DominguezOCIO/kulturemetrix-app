@@ -118,7 +118,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
             <blockquote className="mx-auto mt-12 max-w-3xl rounded-2xl border-l-4 border-orange-500 bg-gradient-to-br from-orange-500/10 via-red-600/5 to-transparent px-6 py-6 text-left shadow-lg shadow-orange-500/5 backdrop-blur sm:px-8 sm:py-8">
               <span className="block text-4xl leading-none text-orange-400/60" aria-hidden="true">&ldquo;</span>
               <p className="-mt-3 text-sm font-bold uppercase tracking-wide text-orange-200 sm:text-base md:text-lg leading-relaxed">
-                Reemplazar a un empleado quemado cuesta hasta el doble de su sueldo anual. Diseñamos <span className="text-white">KultureMetrix</span> para evaluar el burnout mediante micro-pulsos automatizados de 5 minutos, blindando la retención y certificando a las empresas con salud laboral real.
+                Reemplazar a un empleado quemado cuesta hasta el doble de su sueldo anual. Diseñamos <span className="text-white">KultureMetrix</span> para evaluar el burnout mediante micro-pulsos automatizados de 5 minutos, blindando la retención de talento y mejorar el bienestar de los equipos, certificando a las empresas con salud laboral real.
               </p>
               <span className="mt-3 block text-4xl leading-none text-right text-orange-400/60" aria-hidden="true">&rdquo;</span>
               <footer className="mt-3 text-right text-sm font-semibold uppercase tracking-wide text-orange-300/80 sm:text-base">
