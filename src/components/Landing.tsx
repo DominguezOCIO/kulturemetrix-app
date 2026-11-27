@@ -1,9 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ArrowRight, BarChart3, FileCheck, ShieldCheck, Shuffle, Cpu, Ban, ArrowLeftRight, Award, Star, Lock, Building2, User, ChevronDown, Mail, CheckCircle2, Loader2, Users, TrendingUp, Check, Newspaper, Radio, X, Briefcase, Phone } from 'lucide-react';
 import { Logo } from './Logo';
 import { supabase } from '@/lib/supabase';
-import { fetchDepartamentosActivos, registerTrabajador } from '@/lib/trabajadores';
-import type { Departamento } from '@/lib/trabajadores';
 
 interface LandingProps {
   onEnter: (email: string, password: string) => Promise<boolean>;
@@ -247,39 +245,51 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
         </div>
       </div>
 
-      {/* Sección: Nuestro Sello de Valor */}
-      <section className="bg-slate-50 py-16 px-6 border-t border-b border-slate-200">
-        <div className="max-w-4xl mx-auto text-center">
-          <span className="text-xs font-bold tracking-widest text-[#43B59C] uppercase bg-[#43B59C]/10 px-3 py-1 rounded-full">
-            Garantía Antifraude Auditable
-          </span>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-[#205072] mt-4 mb-6 tracking-tight">
-            NUESTRO SELLO DE VALOR
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
-            <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100 text-left">
-              <h3 className="font-bold text-[#205072] flex items-center gap-2">
-                <span className="text-[#43B59C]">✓</span> Filtro de Veracidad
-              </h3>
-              <p className="text-sm text-slate-600 mt-1">
-                Validación humana y presencial en tiempo real. Cero cuentas fantasma, cero sesgos manipulados.
-              </p>
-            </div>
-            <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100 text-left">
-              <h3 className="font-bold text-[#205072] flex items-center gap-2">
-                <span className="text-[#43B59C]">✓</span> Valor Seguro
-              </h3>
-              <p className="text-sm text-slate-600 mt-1">
-                Un blindaje corporativo que convierte los resultados en una métrica limpia e incontestable.
-              </p>
-            </div>
+      {/* Sección: Cómo Funciona */}
+      <section id="como-funciona" className="bg-slate-50 py-20 px-6 border-t border-b border-slate-200">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto max-w-3xl text-center">
+            <span className="text-xs font-bold tracking-widest text-[#43B59C] uppercase bg-[#43B59C]/10 px-3 py-1 rounded-full">
+              Proceso sencillo y transparente
+            </span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-[#205072] mt-4 tracking-tight">
+              CÓMO FUNCIONA
+            </h2>
+            <p className="mt-5 text-base leading-relaxed text-slate-600 sm:text-lg">
+              Del acceso al panel a la certificación oficial: cuatro pasos para transformar el bienestar de tu organización en una ventaja medible.
+            </p>
           </div>
-          <p className="text-base md:text-lg text-slate-700 leading-relaxed max-w-3xl mx-auto font-medium">
-            En <span className="font-bold text-[#205072]">KULTURE</span><span className="font-bold text-[#43B59C]">METRIX</span> no creemos en las encuestas masivas que se archivan en el spam. Nuestra auditoría arranca físicamente <span className="underline decoration-[#43B59C] decoration-2 font-semibold">en la sede de la organización</span> a través de una sesión grupal presencial con toda la plantilla.
-          </p>
-          <p className="text-base md:text-lg text-slate-700 leading-relaxed max-w-3xl mx-auto mt-4">
-            Es en ese preciso instante bajo supervisión técnica cuando <span className="font-semibold text-[#205072]">encendemos digitalmente la captación en vivo</span> de los correos corporativos. Un ecosistema blindado que emite accesos únicos y encriptados, garantizando un cuestionario posterior <span className="bg-[#205072]/5 px-1.5 py-0.5 rounded font-bold text-[#205072]">100% anónimo, seguro y libre de fraude corporativo</span>. Datos reales para empresas transparentes.
-          </p>
+
+          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Paso 1 */}
+            <HowItWorksStep
+              number="01"
+              icon={<Building2 className="h-6 w-6" />}
+              title="Acceso a tu panel de empresa"
+              description="Te facilitamos un panel de control exclusivo donde visualizarás las métricas globales, los resultados segmentados por departamento y la puntuación final una vez concluida la auditoría."
+            />
+            {/* Paso 2 */}
+            <HowItWorksStep
+              number="02"
+              icon={<Mail className="h-6 w-6" />}
+              title="Envío de invitaciones 100% anónimas"
+              description="Nos facilitas los correos de tu equipo organizados por departamentos. Cada empleado recibirá un correo explicando la iniciativa de bienestar laboral junto con un enlace único y 100% anónimo para completar un breve cuestionario web de menos de 5 minutos, garantizando total confidencialidad y sinceridad."
+            />
+            {/* Paso 3 */}
+            <HowItWorksStep
+              number="03"
+              icon={<BarChart3 className="h-6 w-6" />}
+              title="Diagnóstico y planes de acción automáticos"
+              description="Una vez completado por el equipo, tu panel generará al instante las gráficas de métricas, la nota final y planes de acción personalizados para reforzar los puntos débiles detectados."
+            />
+            {/* Paso 4 */}
+            <HowItWorksStep
+              number="04"
+              icon={<Award className="h-6 w-6" />}
+              title="Certificación oficial e informe PDF"
+              description="Si la organización alcanza una puntuación mínima de 70/100, podrás descargar automáticamente desde tu panel nuestro Certificado Oficial, junto con un informe completo en PDF con todas las métricas obtenidas y los planes de acción a implementar."
+            />
+          </div>
         </div>
       </section>
 
@@ -614,24 +624,6 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
         </div>
       </section>
 
-      {/* ContactoTrabajador */}
-      <section id="contacto-trabajador" className="bg-slate-50 py-24">
-        <div className="mx-auto max-w-2xl px-6">
-          <div className="mx-auto max-w-xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#205072]/30 bg-[#205072]/5 px-4 py-1.5">
-              <User className="h-4 w-4 text-[#205072]" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#205072]">Registro de trabajadores</span>
-            </div>
-            <h2 className="mt-6 text-4xl font-bold text-[#205072] sm:text-5xl">Correo Trabajador</h2>
-            <p className="mt-4 text-lg leading-relaxed text-slate-600">
-              Regístrate para recibir tu enlace personal de encuesta cuando tu empresa lance una campaña de auditoría.
-            </p>
-          </div>
-
-          <ContactoTrabajadorForm />
-        </div>
-      </section>
-
       {showAuditModal && <AuditRequestModal onClose={closeAuditModal} />}
 
       <footer className="border-t border-slate-800 py-6">
@@ -735,6 +727,28 @@ function FeatureRow({ icon, title, desc }: { icon: React.ReactNode; title: strin
         <p className="font-medium text-white">{title}</p>
         <p className="text-sm text-slate-400">{desc}</p>
       </div>
+    </div>
+  );
+}
+
+function HowItWorksStep({ number, icon, title, description }: {
+  number: string;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="group relative flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-[#43B59C]/50 hover:shadow-xl hover:shadow-[#43B59C]/10">
+      {/* Number badge */}
+      <span className="pointer-events-none absolute -top-3 right-4 text-5xl font-black text-[#205072]/10 select-none transition-transform duration-300 group-hover:scale-110">
+        {number}
+      </span>
+      {/* Icon */}
+      <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-[#205072]/10 text-[#205072] transition-transform duration-300 group-hover:scale-110">
+        {icon}
+      </div>
+      <h3 className="relative mt-5 text-base font-bold leading-snug text-[#205072]">{title}</h3>
+      <p className="relative mt-3 text-sm leading-relaxed text-slate-600">{description}</p>
     </div>
   );
 }
@@ -871,209 +885,6 @@ function PricingCard({
         {cta}
       </button>
     </div>
-  );
-}
-
-interface EmpresaOption {
-  id: string;
-  nombre: string;
-}
-
-function ContactoTrabajadorForm() {
-  const [empresas, setEmpresas] = useState<EmpresaOption[]>([]);
-  const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
-  const [selectedEmpresa, setSelectedEmpresa] = useState('');
-  const [selectedDepto, setSelectedDepto] = useState('');
-  const [email, setEmail] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
-  const [loadingEmpresas, setLoadingEmpresas] = useState(true);
-  const [loadingDeptos, setLoadingDeptos] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data, error: queryError } = await supabase
-          .from('empresas')
-          .select('id, nombre')
-          .eq('captacion_activa', true)
-          .order('nombre', { ascending: true });
-        if (queryError) throw queryError;
-        setEmpresas((data || []) as EmpresaOption[]);
-      } catch {
-        setError('No se pudieron cargar las empresas.');
-      } finally {
-        setLoadingEmpresas(false);
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (!selectedEmpresa) {
-      setDepartamentos([]);
-      setSelectedDepto('');
-      return;
-    }
-    setLoadingDeptos(true);
-    setError('');
-    fetchDepartamentosActivos(selectedEmpresa)
-      .then((depts) => {
-        setDepartamentos(depts);
-        setSelectedDepto('');
-      })
-      .catch(() => {
-        setDepartamentos([]);
-        setError('No se pudieron cargar los departamentos.');
-      })
-      .finally(() => setLoadingDeptos(false));
-  }, [selectedEmpresa]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (!email.trim() || !email.includes('@')) {
-      setError('Introduce un correo válido.');
-      return;
-    }
-    if (!selectedEmpresa) {
-      setError('Selecciona tu empresa.');
-      return;
-    }
-    if (!selectedDepto) {
-      setError('Selecciona tu departamento.');
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const result = await registerTrabajador(email, selectedEmpresa, selectedDepto);
-      if (result.success) {
-        setSuccess(true);
-        setEmail('');
-        setSelectedEmpresa('');
-        setSelectedDepto('');
-        setDepartamentos([]);
-      } else {
-        setError(result.error || 'Error al registrarse.');
-      }
-    } catch {
-      setError('Error de conexión. Inténtalo de nuevo.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  if (success) {
-    return (
-      <div className="mt-10 rounded-2xl border border-emerald-200 bg-white p-8 text-center shadow-sm">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
-          <CheckCircle2 className="h-7 w-7 text-emerald-600" />
-        </div>
-        <h3 className="mt-4 text-lg font-bold text-[#205072]">¡Registro completado!</h3>
-        <p className="mt-2 text-sm text-slate-600">
-          Te has registrado correctamente. Cuando tu empresa lance la campaña de auditoría, recibirás un enlace personal en tu correo para participar en la encuesta.
-        </p>
-        <button
-          onClick={() => setSuccess(false)}
-          className="mt-5 text-sm font-semibold text-[#43B59C] transition hover:text-[#205072]"
-        >
-          Registrar a otro trabajador
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="mt-10 rounded-2xl border border-[#205072]/15 bg-white p-8 shadow-sm">
-      <div className="space-y-5">
-        <div>
-          <label htmlFor="ct-email" className="block text-sm font-medium text-slate-700">Inserta tu correo</label>
-          <div className="relative mt-2">
-            <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              id="ct-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="tu.correo@empresa.com"
-              className="w-full rounded-lg border border-slate-300 py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-[#43B59C] focus:outline-none focus:ring-2 focus:ring-[#43B59C]/20 transition"
-              required
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="ct-empresa" className="block text-sm font-medium text-slate-700">Selecciona tu empresa</label>
-          <select
-            id="ct-empresa"
-            value={selectedEmpresa}
-            onChange={(e) => setSelectedEmpresa(e.target.value)}
-            disabled={loadingEmpresas}
-            className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 focus:border-[#43B59C] focus:outline-none focus:ring-2 focus:ring-[#43B59C]/20 transition disabled:bg-slate-50"
-            required
-          >
-            <option value="">{loadingEmpresas ? 'Cargando empresas…' : empresas.length === 0 ? 'No hay empresas activas ahora mismo' : '— Selecciona —'}</option>
-            {empresas.map((emp) => (
-              <option key={emp.id} value={emp.id}>{emp.nombre}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="ct-depto" className="block text-sm font-medium text-slate-700">Selecciona tu departamento</label>
-          <select
-            id="ct-depto"
-            value={selectedDepto}
-            onChange={(e) => setSelectedDepto(e.target.value)}
-            disabled={!selectedEmpresa || loadingDeptos}
-            className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 text-sm text-slate-900 focus:border-[#43B59C] focus:outline-none focus:ring-2 focus:ring-[#43B59C]/20 transition disabled:bg-slate-50"
-            required
-          >
-            <option value="">
-              {!selectedEmpresa ? 'Primero selecciona una empresa' : loadingDeptos ? 'Cargando departamentos…' : '— Selecciona —'}
-            </option>
-            {departamentos.map((dept) => (
-              <option key={dept.id} value={dept.id}>{dept.nombre}</option>
-            ))}
-          </select>
-        </div>
-
-        {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-3">
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
-        )}
-
-        {empresas.length === 0 && !loadingEmpresas && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <p className="text-sm text-amber-700">
-              En este momento no hay ninguna empresa con la captación activada. Vuelve a intentarlo cuando tu empresa haya iniciado su auditoría presencial.
-            </p>
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={submitting || empresas.length === 0}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#205072] to-[#43B59C] px-4 py-3 font-semibold text-white shadow-lg transition hover:from-[#1a3f5e] hover:to-[#3a9d87] disabled:opacity-60"
-        >
-          {submitting ? (
-            <><Loader2 className="h-4 w-4 animate-spin" /> Registrando…</>
-          ) : (
-            <><User className="h-4 w-4" /> Enviar / Registrarse</>
-          )}
-        </button>
-      </div>
-
-      <div className="mt-5 flex items-start gap-3 rounded-xl border border-[#43B59C]/20 bg-[#43B59C]/5 p-4">
-        <ShieldCheck className="h-4 w-4 flex-shrink-0 text-[#43B59C]" />
-        <p className="text-xs text-slate-600">
-          Tu correo se usa únicamente para enviarte el enlace de la encuesta. Nunca se vincula con tus respuestas, garantizando un anonimato absoluto conforme al RGPD.
-        </p>
-      </div>
-    </form>
   );
 }
 
