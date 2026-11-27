@@ -363,7 +363,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
           <div className="mx-auto mb-8 flex max-w-2xl items-center justify-center gap-3 rounded-2xl border border-[#43B59C]/25 bg-[#43B59C]/8 px-5 py-3 text-center shadow-[0_4px_20px_-8px_rgba(67,181,156,0.2)]">
             <ShieldCheck className="h-5 w-5 flex-shrink-0 text-[#43B59C]" strokeWidth={1.75} />
             <p className="text-sm font-semibold text-[#205072]">
-              Cumplimiento estricto del RGPD laboral — Mínimo de 50 empleados requerido para garantizar el anonimato absoluto por departamento
+              Cumplimiento estricto del RGPD laboral — Mínimo de 15 empleados requerido para garantizar el anonimato absoluto por departamento
             </p>
           </div>
 
