@@ -20,7 +20,7 @@ import { CampaignPanel } from './CampaignPanel';
 import { AgentsCentralPanel } from './AgentsCentralPanel';
 import type { Empresa } from '@/lib/scoring';
 import { Logo } from './Logo';
-import { fetchDepartamentos, createDepartamento, deleteDepartamento, fetchTrabajadores, toggleDepartamentoCaptacion, fetchTrabajadoresDetalle, updateTrabajadorEmail, deleteTrabajador, getGlobalTrabajadoresStats, bulkRegisterTrabajadores, registerTrabajador, fetchTrabajadoresAgrupados, hasActiveCampaign } from '@/lib/trabajadores';
+import { fetchDepartamentos, createDepartamento, deleteDepartamento, fetchTrabajadores, fetchTrabajadoresDetalle, updateTrabajadorEmail, deleteTrabajador, getGlobalTrabajadoresStats, bulkRegisterTrabajadores, registerTrabajador, fetchTrabajadoresAgrupados, hasActiveCampaign } from '@/lib/trabajadores';
 import type { Departamento, TrabajadorConToken } from '@/lib/trabajadores';
 import { launchCampaign } from '@/lib/campaign';
 import { supabase } from '@/lib/supabase';
@@ -874,10 +874,6 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
     catch { setDeptError('No se puede eliminar: tiene trabajadores o campañas vinculadas.'); }
   };
 
-  const handleToggleDept = async (id: string, current: boolean) => {
-    try { await toggleDepartamentoCaptacion(id, !current); await loadDepartamentos(); } catch (err) { console.error(err); }
-  };
-
   const handleCampaignSent = async () => { onStatsChanged(); await loadDepartamentos(); };
 
   const handleLaunchCampaign = async () => {
@@ -1102,16 +1098,12 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
                 {departamentos.map((dept) => (
                   <div key={dept.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                     <div className="flex items-center gap-3">
-                      <Tag className={`h-4 w-4 ${dept.captacion_activa ? 'text-[#43B59C]' : 'text-slate-300'}`} />
+                      <Tag className="h-4 w-4 text-[#43B59C]" />
                       <span className="flex-1 text-sm font-medium text-slate-700">{dept.nombre}</span>
                       <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-0.5 text-xs font-bold text-slate-600 border border-slate-200">
                         <Users className="h-3 w-3 text-slate-400" />
                         {deptWorkerCounts[dept.id] || 0}
                       </span>
-                      <span className={`text-[10px] font-bold ${dept.captacion_activa ? 'text-emerald-600' : 'text-slate-400'}`}>{dept.captacion_activa ? 'CAPTACIÓN ON' : 'CAPTACIÓN OFF'}</span>
-                      <button onClick={() => handleToggleDept(dept.id, dept.captacion_activa)} className={`relative inline-flex h-6 w-12 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${dept.captacion_activa ? 'bg-emerald-500' : 'bg-slate-300'}`} title={dept.captacion_activa ? 'Desactivar captación' : 'Activar captación'}>
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-300 ${dept.captacion_activa ? 'translate-x-7' : 'translate-x-1'}`} />
-                      </button>
                       <button onClick={() => handleDeleteDept(dept.id)} className="rounded p-0.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600" title="Eliminar departamento"><X className="h-4 w-4" /></button>
                     </div>
 
