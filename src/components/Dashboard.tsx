@@ -7,7 +7,7 @@ import {
   ArrowLeft, AlertTriangle, Lightbulb, TrendingUp,
   Users, Clock, Brain, Trophy, Loader2, BarChart3, ShieldAlert,
   ShieldCheck, Ban, Scale, Target,
-  CheckCircle2, Mail, ChevronDown,
+  CheckCircle2, Mail, ChevronDown, Download, FileText, Award, Lock,
 } from 'lucide-react';
 import { BLOCKS, ACTION_PLANS, STRUCTURED_ACTION_PLANS } from '@/lib/questions';
 import type { StructuredActionPlan } from '@/lib/questions';
@@ -16,6 +16,8 @@ import type { Empresa, BlockScore, DeptScore } from '@/lib/scoring';
 import { getTrabajadoresStats } from '@/lib/trabajadores';
 import type { TrabajadoresStats } from '@/lib/trabajadores';
 import { Logo } from './Logo';
+import { CertificateModal } from './CertificateModal';
+import { ReportModal } from './ReportModal';
 
 interface DashboardProps {
   empresa: Empresa;
@@ -98,6 +100,8 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
   const [loading, setLoading] = useState(true);
   const [trabStats, setTrabStats] = useState<TrabajadoresStats>({ total: 0, completados: 0, pendientes: 0, participacion: 0, porDepartamento: [] });
   const [loadingTrabStats, setLoadingTrabStats] = useState(true);
+  const [showCertModal, setShowCertModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -348,6 +352,65 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
             </div>
           )}
         </div>
+
+        {/* Descargas de documentos — visible solo cuando la auditoría ha finalizado */}
+        {allCompleted && notaGlobal > 0 && (
+          <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                <Download className="h-5 w-5" strokeWidth={1.75} />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900">Documentos de la auditoría</h3>
+                <p className="text-xs text-slate-500">Descarga los resultados de tu auditoría en formato PDF</p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              {/* Certificado / Insignia — solo si aprobada */}
+              {isCertified ? (
+                <button
+                  onClick={() => setShowCertModal(true)}
+                  className="flex items-center gap-3 rounded-xl border-2 border-emerald-200 bg-emerald-50 p-5 text-left transition hover:border-emerald-300 hover:bg-emerald-100"
+                >
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/20">
+                    <Award className="h-6 w-6 text-white" strokeWidth={1.75} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900">Descargar Certificado / Insignia (PDF)</p>
+                    <p className="text-xs text-slate-500">Documento oficial acreditativo con nombre, nota y fecha</p>
+                  </div>
+                  <Download className="ml-auto h-5 w-5 text-emerald-600" strokeWidth={1.75} />
+                </button>
+              ) : (
+                <div className="flex items-center gap-3 rounded-xl border-2 border-slate-200 bg-slate-50 p-5">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-slate-200 text-slate-400">
+                    <Lock className="h-6 w-6" strokeWidth={1.75} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-400">Certificado / Insignia no disponible</p>
+                    <p className="text-xs text-slate-500">No se ha alcanzado la nota mínima de 70 puntos requerida para obtener la insignia</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Informe y Plan de Acción — siempre disponible */}
+              <button
+                onClick={() => setShowReportModal(true)}
+                className="flex items-center gap-3 rounded-xl border-2 border-blue-200 bg-blue-50 p-5 text-left transition hover:border-blue-300 hover:bg-blue-100"
+              >
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#205072] to-[#43B59C] shadow-lg shadow-[#205072]/20">
+                  <FileText className="h-6 w-6 text-white" strokeWidth={1.75} />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900">Descargar Informe y Plan de Acción (PDF)</p>
+                  <p className="text-xs text-slate-500">Resultados detallados, desglose por bloques y planes de acción</p>
+                </div>
+                <Download className="ml-auto h-5 w-5 text-blue-600" strokeWidth={1.75} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* KPI Header with circular gauge */}
         <div className={`rounded-2xl border-2 p-8 ${notaInfo.border} ${notaInfo.bg}`}>
@@ -693,6 +756,22 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
           );
         })()}
       </div>
+
+      {showCertModal && (
+        <CertificateModal
+          empresa={empresa}
+          notaGlobal={notaGlobal}
+          onClose={() => setShowCertModal(false)}
+        />
+      )}
+      {showReportModal && (
+        <ReportModal
+          empresa={empresa}
+          notaGlobal={notaGlobal}
+          blockScores={blockScores}
+          onClose={() => setShowReportModal(false)}
+        />
+      )}
     </div>
   );
 }
