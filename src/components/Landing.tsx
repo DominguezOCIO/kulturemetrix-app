@@ -696,7 +696,7 @@ const FAQ_SECTIONS = [
     questions: [
       {
         question: '¿Qué es la Insignia Kulturemetrix (uso privado, no oficial) de Bienestar Corporativo?',
-        answer: 'Es un distintivo oficial de calidad emitido por nuestra entidad externa que avala que una empresa cumple con estándares óptimos de salud organizacional y bienestar humano tras superar la auditoría correspondiente.',
+        answer: 'Es un distintivo privado (no oficial), emitido por nuestra entidad externa que avala que una empresa cumple con estándares óptimos de salud organizacional y bienestar humano tras superar la auditoría correspondiente.',
       },
       {
         question: '¿Cómo se obtiene la insignia Kulturemetrix (uso privado, no oficial)?',
