@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   Plus, Search, Pencil, Trash2, X, Loader2, Building2, Users,
   DollarSign, Calendar, Mail, Copy, Check, AlertCircle,
-  ArrowLeft, ShieldCheck, ShieldAlert, Activity, ChevronRight, Tag, Power,
+  ArrowLeft, ShieldCheck, ShieldAlert, Activity, ChevronRight, Tag,
   Award, BarChart3, PieChart, Target, Lock, KeyRound, Eye, EyeOff,
   Download, CheckCircle2, Clock, TrendingUp, Wallet, Bot, Send, Upload,
 } from 'lucide-react';
@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { CERTIFICATE_THRESHOLD } from '@/lib/scoring';
 import {
-  fetchAllEmpresas, createEmpresa, updateEmpresa, deleteEmpresa, fetchEmpresaStats, toggleCaptacion,
+  fetchAllEmpresas, createEmpresa, updateEmpresa, deleteEmpresa, fetchEmpresaStats,
   fetchSolicitudesAuditoria, deleteSolicitudAuditoria, updateSolicitudEstado,
 } from '@/lib/admin';
 import type { AdminEmpresa, AdminEmpresaInput, SolicitudAuditoria } from '@/lib/admin';
@@ -951,16 +951,8 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
     }
   };
 
-  const [captacionActiva, setCaptacionActiva] = useState(empresa.captacion_activa ?? false);
-  const [toggling, setToggling] = useState(false);
   const [cuentaActiva, setCuentaActiva] = useState(empresa.cuenta_activa ?? false);
   const [togglingCuenta, setTogglingCuenta] = useState(false);
-
-  const handleToggleCaptacion = async () => {
-    setToggling(true);
-    try { const newValue = !captacionActiva; await toggleCaptacion(empresa.id, newValue); setCaptacionActiva(newValue); }
-    catch (err) { console.error(err); } finally { setToggling(false); }
-  };
 
   const handleToggleCuentaDetail = async () => {
     if (!hasAuth) return;
@@ -1087,25 +1079,6 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
               <p className="text-sm text-emerald-700">Credenciales creadas correctamente. La empresa ya puede iniciar sesión.</p>
             </div>
           )}
-        </div>
-
-        {/* Captación switch */}
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${captacionActiva ? 'bg-emerald-100' : 'bg-slate-100'}`}>
-                <Power className={`h-5 w-5 transition ${captacionActiva ? 'text-emerald-600' : 'text-slate-400'}`} />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900">Activar captación ahora</h3>
-                <p className="text-xs text-slate-500">{captacionActiva ? 'La empresa es visible en el formulario público. Los trabajadores pueden registrarse.' : 'La empresa no es visible en el formulario público. Actívala durante la reunión presencial.'}</p>
-              </div>
-            </div>
-            <button onClick={handleToggleCaptacion} disabled={toggling} className={`relative inline-flex h-8 w-16 flex-shrink-0 items-center rounded-full transition-colors duration-300 disabled:opacity-50 ${captacionActiva ? 'bg-emerald-500' : 'bg-slate-300'}`} title={captacionActiva ? 'Desactivar captación' : 'Activar captación'}>
-              <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition-transform duration-300 ${captacionActiva ? 'translate-x-9' : 'translate-x-1'}`} />
-              <span className={`absolute text-[10px] font-bold ${captacionActiva ? 'right-2 text-emerald-50' : 'left-2 text-slate-500'}`}>{captacionActiva ? 'ON' : 'OFF'}</span>
-            </button>
-          </div>
         </div>
 
         {/* Department management with worker entry */}
