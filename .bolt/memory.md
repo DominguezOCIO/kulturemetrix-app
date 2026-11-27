@@ -30,6 +30,7 @@
 - Admin panel supports department management and worker email entry (manual + CSV) — preserved as-is.
 - "Cómo Funciona" replaced former "Garantía Antifraude Auditable" section.
 - Certification threshold fixed at 70/100 for official certificate + PDF report.
+- GDPR badge in pricing section updated: minimum employees reduced from 50 to 15 ("Mínimo de 15 empleados requerido para garantizar el anonimato absoluto por departamento").
 - Avoid unused imports/components after refactors.
 
 ## Open questions & assumptions
