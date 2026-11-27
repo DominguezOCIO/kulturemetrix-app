@@ -11,22 +11,26 @@
 
 - Spanish content throughout; formal but accessible tone.
 - Emphasis on confidentiality, anonymity, and trust ("100% anónimo", "sello de valor", "certificación oficial").
+- Enterprise SaaS B2B aesthetic: corporate, clean, maximum business trust.
 
 ## Visual design & UX direction
 
 - Stack: Vite + React (JSX), Tailwind CSS, Lucide React icons, `@/` path alias → `src/`.
-- Aesthetic: production-grade, distinctive, not cookie-cutter; keep existing colors, typography, and style consistent across edits.
-- "Cómo Funciona" rendered as 4 numbered step cards (01–04), styled to match existing section/card patterns.
-- FAQ uses `ChevronDown` for expand/collapse interaction.
-- Reusable helper components preferred for repeated patterns (e.g. `HowItWorksStep`, `FeatureRow`).
+- Typography: headings use `tracking-tight`; secondary text in elegant neutral grays for readability and contrast hierarchy.
+- Depth: 1px low-opacity borders + multi-layer soft shadows on cards/containers; glassmorphism (`backdrop-blur-md`) on fixed access bar and modal.
+- Micro-interactions: `duration-200` transitions on buttons and cards; hover elevation + border enhancement on pricing plans and steps; `brightness-110` on primary CTAs.
+- Icons: consistent `strokeWidth={1.75}`, rounded containers with soft brand-color tint and subtle `ring-1`.
+- Spacing: card padding `p-7`/`p-8`; balanced vertical section spacing; soft gradient separators for breathing room.
+- "Cómo Funciona" as 4 numbered step cards (01–04); FAQ uses `ChevronDown`; reusable helpers (`HowItWorksStep`, `FeatureRow`).
 
 ## Decisions, constraints & rationale
 
-- Public landing page no longer exposes "Correo Trabajador"; worker email intake lives only in the Admin control panel.
-- Admin panel already supports department management and worker email entry (manual + CSV upload) — preserved as-is.
-- Replaced "Garantía Antifraude Auditable · Nuestro Sello de Valor" section with "Cómo Funciona" to better explain the workflow.
-- Certification threshold fixed at 70/100 for downloadable official certificate + PDF report.
-- Avoid unused imports/components after refactors (e.g. removed `ContactoTrabajadorForm`, `EmpresaOption`, related lib calls/icons).
+- Visual polish pass applied globally without altering structure, section order, texts, or existing logic/functionality.
+- Public landing page no longer exposes "Correo Trabajador"; worker email intake lives only in Admin control panel.
+- Admin panel supports department management and worker email entry (manual + CSV) — preserved as-is.
+- "Cómo Funciona" replaced former "Garantía Antifraude Auditable" section.
+- Certification threshold fixed at 70/100 for official certificate + PDF report.
+- Avoid unused imports/components after refactors.
 
 ## Open questions & assumptions
 
