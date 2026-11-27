@@ -367,56 +367,67 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
           </div>
 
           {/* Pricing cards */}
-          <div className="mt-14 grid gap-6 lg:grid-cols-3 lg:gap-8">
-            {/* Plan Crecimiento (PYME) */}
+          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+            {/* Plan PYMES */}
             <PricingCard
-              name="Plan Crecimiento"
-              tier="PYME"
-              range="50 a 150 empleados"
-              price="199€"
-              priceUnit="/ mes"
-              secondary="Facturado anualmente: 2.388€ + IVA"
+              name="PYMES"
+              tier="15 a 49 empleados"
+              price="1.188 €"
+              priceLabel="(+ IVA) · Pago anual"
+              description="Ideal para empresas ágiles que buscan proteger el bienestar de su equipo desde el inicio y potenciar su marca empleadora."
               features={[
-                { icon: <CheckCircle2 className="h-4 w-4" />, text: 'Cuestionarios: Cobertura total para organizaciones de hasta 149 trabajadores.' },
-                { icon: <Lock className="h-4 w-4" />, text: 'Acceso: Credenciales de acceso único para la gestión del plan.' },
-                { icon: <Users className="h-4 w-4" />, text: 'Conferencia Exclusiva: 1 sesión presencial impartida por el CEO de KULTUREMETRIX (30 min aprox.), previa a la apertura de la campaña de auditoría, en la sede central designada por la empresa contratante (válido dentro de España).' },
-                { icon: <BarChart3 className="h-4 w-4" />, text: 'Analítica: Métricas avanzadas de clima laboral.' },
-                { icon: <Mail className="h-4 w-4" />, text: 'Soporte: Atención al cliente y resolución de incidencias vía email.' },
-                { icon: <ShieldCheck className="h-4 w-4" />, text: 'Seguridad: Garantía absoluta de anonimato por diseño (Privacy by Design).' },
+                'Cobertura completa: Auditoría para hasta 49 trabajadores.',
+                'Tests automatizados: Medición rápida de 5 minutos sin interrumpir la operativa diaria.',
+                'Panel de control: Métricas globales y segmentadas por departamento, indicadores de bienestar y alertas tempranas de riesgo de burnout.',
+                'Certificación oficial: Derecho de uso del Sello KultureMetrix (sujeto a superar los estándares de la auditoría).',
               ]}
               cta="Contactar para Auditoría"
               featured={false}
               onCtaClick={openAuditModal}
             />
 
-            {/* Plan Consolidación (Corporate) — DESTACADA */}
+            {/* Plan EXPANSIÓN */}
             <PricingCard
-              name="Plan Consolidación"
-              tier="Corporate"
-              range="151 a 500 empleados"
-              price="499€"
-              priceUnit="/ mes"
-              secondary="Facturado anualmente: 5.988€ + IVA"
+              name="EXPANSIÓN"
+              tier="50 a 150 empleados"
+              price="2.388 €"
+              priceLabel="(+ IVA) · Pago anual"
+              description="Para organizaciones en crecimiento que necesitan profesionalizar la escucha interna y reducir la rotación de talento."
               features={[
-                { icon: <CheckCircle2 className="h-4 w-4" />, text: 'Incluye: Todo el alcance y beneficios contemplados en el Plan PYME.' },
-                { icon: <Users className="h-4 w-4" />, text: 'Conferencias Corporativas: Sesiones presenciales impartidas por el CEO de KULTUREMETRIX (30 min aprox.), previas a la apertura de la campaña de auditoría. Flexibilidad de ejecución en formato grupal unificado o segmentado por departamentos, según las directrices de la empresa contratante, en la sede central designada (dentro de España).' },
+                'Todo lo incluido en el Plan PYMES.',
+                'Conferencia webinar: Sesión previa con los responsables de la empresa y RR. HH. antes de la apertura de la auditoría.',
+              ]}
+              cta="Contactar para Auditoría"
+              featured={false}
+              onCtaClick={openAuditModal}
+            />
+
+            {/* Plan CORPORATE — DESTACADA */}
+            <PricingCard
+              name="CORPORATE"
+              tier="151 a 500 empleados"
+              price="5.988 €"
+              priceLabel="(+ IVA) · Pago anual"
+              description="Para empresas medianas y grandes que buscan convertir el bienestar laboral en una ventaja competitiva medible."
+              features={[
+                'Todo lo incluido en el Plan EXPANSIÓN.',
+                'Acompañamiento personalizado: Seguimiento continuo durante todo el proceso de auditoría vía videoconferencia.',
               ]}
               cta="Contactar para Auditoría"
               featured={true}
               onCtaClick={openAuditModal}
             />
 
-            {/* Plan Enterprise */}
+            {/* Plan GRAN EMPRESA */}
             <PricingCard
-              name="Plan Enterprise"
-              tier="Enterprise"
-              range="Más de 500 empleados"
-              price="*CONSULTAR"
-              priceUnit=""
-              secondary="Contrato personalizado a medida"
+              name="GRAN EMPRESA"
+              tier="Más de 500 empleados"
+              price="A medida"
+              priceLabel="Proyecto personalizado"
+              description="Soluciones a escala corporativa para impulsar el bienestar laboral desde la alta dirección."
               features={[
-                { icon: <CheckCircle2 className="h-4 w-4" />, text: 'Incluye: Todo el alcance corporativo y beneficios del Plan CORPORATE.' },
-                { icon: <TrendingUp className="h-4 w-4" />, text: 'Conferencias Globales: Sesiones presenciales impartidas por el CEO de KULTUREMETRIX (30 min aprox.), previas a la apertura de la campaña de auditoría. Formato flexible (grupal o por departamentos) con despliegue en múltiples ubicaciones geográficas designadas por la empresa contratante a nivel INTERNACIONAL.' },
+                'Todo lo incluido en el Plan CORPORATE.',
+                'Conferencia presencial del CEO: Sesión impartida por el CEO de KultureMetrix en la sede principal de la empresa (nacional o internacional) antes de la apertura de la auditoría.',
               ]}
               cta="Contactar para Auditoría"
               featured={false}
@@ -783,18 +794,12 @@ function TrustBadge({ label }: { label: string }) {
   );
 }
 
-interface PricingFeature {
-  icon: React.ReactNode;
-  text: string;
-}
-
 function PricingCard({
   name,
   tier,
-  range,
   price,
-  priceUnit,
-  secondary,
+  priceLabel,
+  description,
   features,
   cta,
   featured,
@@ -802,18 +807,17 @@ function PricingCard({
 }: {
   name: string;
   tier: string;
-  range: string;
   price: string;
-  priceUnit: string;
-  secondary: string;
-  features: PricingFeature[];
+  priceLabel: string;
+  description: string;
+  features: string[];
   cta: string;
   featured: boolean;
   onCtaClick?: () => void;
 }) {
   return (
     <div
-      className={`group relative flex flex-col rounded-3xl border-2 p-8 transition-all duration-300 hover:-translate-y-2 ${
+      className={`group relative flex flex-col rounded-3xl border-2 p-7 transition-all duration-300 hover:-translate-y-2 ${
         featured
           ? 'border-[#43B59C] bg-white shadow-xl shadow-[#43B59C]/10 hover:shadow-2xl hover:shadow-[#43B59C]/20'
           : 'border-slate-200 bg-white shadow-lg hover:shadow-xl hover:border-slate-300'
@@ -821,26 +825,25 @@ function PricingCard({
     >
       {/* Header */}
       <div className="text-center">
-        <p className={`text-xs font-bold uppercase tracking-widest ${featured ? 'text-[#43B59C]' : 'text-slate-400'}`}>
-          {tier}
-        </p>
-        <h3 className="mt-2 text-2xl font-extrabold text-[#205072]">{name}</h3>
-        <p className="mt-1 text-sm text-slate-500">{range}</p>
+        <h3 className={`text-xl font-extrabold uppercase tracking-tight ${featured ? 'text-[#43B59C]' : 'text-[#205072]'}`}>
+          {name}
+        </h3>
+        <p className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-500">{tier}</p>
       </div>
 
       {/* Price */}
-      <div className="mt-6 text-center">
-        <div className="flex items-baseline justify-center gap-1">
-          <span className={`text-4xl font-black ${featured ? 'text-[#205072]' : 'text-slate-800'}`}>
-            {price}
-          </span>
-          <span className="text-sm font-medium text-slate-400">{priceUnit}</span>
-        </div>
-        <p className="mt-2 text-xs text-slate-500">{secondary}</p>
+      <div className="mt-5 text-center">
+        <span className={`text-4xl font-black ${featured ? 'text-[#205072]' : 'text-slate-800'}`}>
+          {price}
+        </span>
+        <p className="mt-1.5 text-xs font-medium text-slate-500">{priceLabel}</p>
       </div>
 
+      {/* Description */}
+      <p className="mt-4 text-sm leading-relaxed text-slate-600 text-center">{description}</p>
+
       {/* Divider */}
-      <div className="my-6 h-px bg-slate-100" />
+      <div className="my-5 h-px bg-slate-100" />
 
       {/* Features */}
       <ul className="flex-1 space-y-3">
@@ -849,9 +852,9 @@ function PricingCard({
             <span className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${
               featured ? 'bg-[#43B59C]/15 text-[#43B59C]' : 'bg-slate-100 text-slate-500'
             }`}>
-              {f.icon}
+              <Check className="h-3.5 w-3.5" strokeWidth={3} />
             </span>
-            <span className="text-sm leading-relaxed text-slate-700">{f.text}</span>
+            <span className="text-sm leading-relaxed text-slate-700">{f}</span>
           </li>
         ))}
       </ul>
@@ -859,7 +862,7 @@ function PricingCard({
       {/* CTA */}
       <button
         onClick={onCtaClick}
-        className={`mt-8 w-full rounded-xl px-6 py-3.5 text-sm font-bold transition-all duration-300 ${
+        className={`mt-6 w-full rounded-xl px-6 py-3.5 text-sm font-bold transition-all duration-300 ${
           featured
             ? 'bg-gradient-to-r from-[#205072] to-[#43B59C] text-white shadow-lg shadow-[#43B59C]/20 hover:shadow-xl hover:shadow-[#43B59C]/30 hover:from-[#1a4060] hover:to-[#3aa588]'
             : 'border-2 border-slate-200 bg-white text-[#205072] hover:border-[#43B59C] hover:bg-[#43B59C]/5'
