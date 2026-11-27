@@ -83,7 +83,7 @@ function ScoreGauge({ score, threshold }: { score: number; threshold: number }) 
                 : 'bg-red-50 text-red-700'
           }`}
         >
-          {passed ? 'Certificable' : score >= 65 ? 'Precaución' : 'Crítico'}
+          {passed ? 'Con insignia' : score >= 65 ? 'Precaución' : 'Crítico'}
         </div>
       </div>
     </div>
@@ -210,7 +210,7 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
             </div>
             <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${isCertified ? 'bg-emerald-500 text-white' : allCompleted && notaGlobal > 0 ? 'bg-red-500 text-white' : 'bg-amber-400 text-white'}`}>
               <span className="h-2 w-2 rounded-full bg-white/80" />
-              {isCertified ? 'CERTIFICADA' : allCompleted && notaGlobal > 0 ? 'FALLIDA' : 'AUDITANDO'}
+              {isCertified ? 'CON INSIGNIA' : allCompleted && notaGlobal > 0 ? 'FALLIDA' : 'AUDITANDO'}
             </div>
           </div>
         </div>

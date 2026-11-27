@@ -250,7 +250,7 @@ export async function getDeptScores(empresaId: string): Promise<DeptScore[]> {
 
 export function getNotaColor(nota: number): { bg: string; text: string; border: string; label: string } {
   if (nota >= CERTIFICATE_THRESHOLD) {
-    return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', label: 'Certificable' };
+    return { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', label: 'Con insignia' };
   } else if (nota >= 65) {
     return { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', label: 'Precaución' };
   } else {

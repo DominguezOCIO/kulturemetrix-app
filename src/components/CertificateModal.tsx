@@ -77,7 +77,7 @@ export function CertificateModal({ empresa, notaGlobal, onClose }: CertificateMo
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 116, 139);
-    doc.text('Se certifica que la empresa', 148.5, 75, { align: 'center' });
+    doc.text('Se otorga la insignia a la empresa', 148.5, 75, { align: 'center' });
 
     // Nombre empresa
     doc.setFontSize(24);
@@ -132,7 +132,7 @@ export function CertificateModal({ empresa, notaGlobal, onClose }: CertificateMo
 
               <h3 className="mt-6 text-3xl font-bold text-slate-900">Insignia Kulturemetrix de Bienestar Laboral</h3>
 
-              <p className="mt-8 text-sm text-slate-500">Se certifica que la empresa</p>
+              <p className="mt-8 text-sm text-slate-500">Se otorga la insignia a la empresa</p>
               <p className="mt-2 text-2xl font-bold text-slate-900">{empresa.nombre}</p>
 
               <p className="mt-6 text-sm text-slate-500">ha obtenido una puntuación global de bienestar laboral de</p>

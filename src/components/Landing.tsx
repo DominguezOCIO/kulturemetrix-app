@@ -117,7 +117,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
             <blockquote className="mx-auto mt-12 max-w-3xl rounded-2xl border-l-4 border-orange-500 bg-gradient-to-br from-orange-500/10 via-red-600/5 to-transparent px-6 py-6 text-left shadow-[0_10px_40px_-12px_rgba(234,88,12,0.25)] backdrop-blur sm:px-8 sm:py-8">
               <span className="block text-4xl leading-none text-orange-400/60" aria-hidden="true">&ldquo;</span>
               <p className="-mt-3 text-sm font-bold uppercase tracking-wide text-orange-200 sm:text-base md:text-lg leading-relaxed">
-                Reemplazar a un empleado quemado cuesta hasta el doble de su sueldo anual. Diseñamos <span className="text-white">KultureMetrix</span> para evaluar el burnout mediante micro-pulsos automatizados de 5 minutos, blindando la retención de talento y mejorando el bienestar de los equipos, certificando a las empresas con salud laboral real.
+                Reemplazar a un empleado quemado cuesta hasta el doble de su sueldo anual. Diseñamos <span className="text-white">KultureMetrix</span> para evaluar el burnout mediante micro-pulsos automatizados de 5 minutos, blindando la retención de talento y mejorando el bienestar de los equipos, otorgando la insignia a las empresas con salud laboral real.
               </p>
               <span className="mt-3 block text-4xl leading-none text-right text-orange-400/60" aria-hidden="true">&rdquo;</span>
               <footer className="mt-3 text-right text-sm font-semibold uppercase tracking-wide text-orange-300/80 sm:text-base">
@@ -310,7 +310,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
 
           {/* Intro */}
           <p className="mt-6 text-center text-base leading-relaxed text-slate-500 sm:text-lg">
-            El acceso al <span className="font-bold text-[#205072]">INSIGNIA KULTUREMETRIX</span> está sujeto a un estricto proceso de evaluación diseñado bajo un principio de convocatoria única anual:
+            El acceso a la <span className="font-bold text-[#205072]">INSIGNIA KULTUREMETRIX</span> está sujeto a un estricto proceso de evaluación diseñado bajo un principio de convocatoria única anual:
           </p>
 
           {/* Conditions grid */}
@@ -333,7 +333,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
               </div>
               <h3 className="mt-4 text-base font-bold text-[#205072]">Emisión y Renovación</h3>
               <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                Las compañías que alcancen la puntuación requerida obtendrán la <span className="font-bold text-[#205072]">INSIGNIA KULTUREMETRIX ANUAL</span>, el cual tendrá validez por 12 meses. La renovación del distintivo requerirá superar una nueva auditoría desde cero al cumplirse el año de su fecha de alta.
+                Las compañías que alcancen la puntuación requerida obtendrán la <span className="font-bold text-[#205072]">INSIGNIA KULTUREMETRIX ANUAL</span>, la cual tendrá validez por 12 meses. La renovación del distintivo requerirá superar una nueva auditoría desde cero al cumplirse el año de su fecha de alta.
               </p>
             </div>
 
