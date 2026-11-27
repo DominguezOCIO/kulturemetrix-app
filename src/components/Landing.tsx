@@ -523,7 +523,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
         </div>
       </section>
 
-      {/* Sección: Nuestra Metodología */}
+      {/* Sección: Desarrollo del Sistema */}
       <section id="metodologia" className="bg-[#0f172a] py-24">
         <div className="mx-auto max-w-6xl px-6">
           {/* Encabezado */}
@@ -533,7 +533,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
               <span className="text-xs font-semibold uppercase tracking-wider text-cyan-300">Protección y precisión garantizadas</span>
             </div>
             <h2 className="mt-6 text-4xl font-bold tracking-tight text-white sm:text-5xl">
-              Nuestra Metodología
+              Desarrollo del Sistema
             </h2>
             <p className="mt-4 text-lg text-slate-400/90 leading-relaxed">
               Un sistema de auditoría de cinco capas diseñado para detectar incoherencias, eliminar manipulaciones y garantizar que cada resultado refleje la realidad laboral de tu organización con máxima fiabilidad técnica.
