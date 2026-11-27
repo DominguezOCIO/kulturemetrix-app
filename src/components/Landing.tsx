@@ -86,13 +86,13 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
               <Award className="h-10 w-10 text-orange-400" strokeWidth={1.75} />
             </div>
 
-            <h1 className="text-3xl font-bold uppercase tracking-tight text-white sm:text-4xl lg:text-5xl">
-              Nuestra Insignia Kulturemetrix de
-              <span className="block bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">Bienestar Corporativo</span>
+            <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
+              Mide y potencia el
+              <span className="block bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">bienestar real de tu equipo.</span>
             </h1>
 
-            <p className="mx-auto mt-8 max-w-3xl text-base leading-relaxed text-slate-300/90 sm:text-lg">
-              Inspirado en la rigurosidad e independencia de las <span className="font-semibold text-orange-300">Estrellas Michelin</span>. KultureMetrix evalúa el entorno laboral de manera <span className="font-semibold text-white">100% ajena a la dirección de la empresa</span>. Nuestra insignia Kulturemetrix <span className="font-semibold text-white">no se puede comprar</span> con presupuestos de marketing; <span className="font-semibold text-orange-300">se merece</span>. Nuestro valor reside en ofrecer una visión clara, transparente y real de la cultura corporativa a través de una auditoría implacable que blinda el anonimato del empleado y premia a las organizaciones humanas.
+            <p className="mx-auto mt-8 max-w-2xl text-base leading-relaxed text-slate-300/90 sm:text-lg">
+              Auditoría externa de clima laboral y salud organizacional. Analizamos y optimizamos la cultura de tu empresa con indicadores de precisión.
             </p>
 
             {/* Pillars row */}
