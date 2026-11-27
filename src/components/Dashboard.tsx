@@ -7,9 +7,10 @@ import {
   ArrowLeft, AlertTriangle, Lightbulb, TrendingUp,
   Users, Clock, Brain, Trophy, Loader2, BarChart3, ShieldAlert,
   ShieldCheck, Ban, Scale, Target,
-  CheckCircle2, Mail,
+  CheckCircle2, Mail, ChevronDown,
 } from 'lucide-react';
-import { BLOCKS, ACTION_PLANS } from '@/lib/questions';
+import { BLOCKS, ACTION_PLANS, STRUCTURED_ACTION_PLANS } from '@/lib/questions';
+import type { StructuredActionPlan } from '@/lib/questions';
 import { getEmpresaBlockScores, getDeptScores, getNotaColor, CERTIFICATE_THRESHOLD } from '@/lib/scoring';
 import type { Empresa, BlockScore, DeptScore } from '@/lib/scoring';
 import { getTrabajadoresStats } from '@/lib/trabajadores';
@@ -169,6 +170,11 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
     }
     return min;
   }, [displayScores]);
+
+  const alertedBlocks = useMemo(
+    () => displayScores.filter((s) => s.alertaAtencion),
+    [displayScores],
+  );
 
   const deptBarData = useMemo(() => {
     return departments.map((dept) => {
@@ -457,8 +463,9 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
               const score = blockScores.find((s) => s.bloque === b.id);
               const nota = score ? score.nota : 0;
               const info = getNotaColor(nota);
+              const hasAlert = score?.alertaAtencion;
               return (
-                <div key={b.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                <div key={b.id} className={`rounded-xl border p-4 bg-white ${hasAlert ? 'border-amber-300 ring-1 ring-amber-200' : 'border-slate-200'}`}>
                   <div className="flex items-center gap-2 text-slate-500">
                     {BLOCK_ICONS[b.id]}
                     <span className="text-xs font-medium">{b.short}</span>
@@ -470,7 +477,13 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                   <div className="mt-1 text-xs text-slate-400">
                     {score ? `${score.contador} respuestas` : 'Sin datos'}
                   </div>
-                  {b.id === 5 && score && score.vetoCount && score.vetoCount > 0 && (
+                  {hasAlert && (
+                    <div className="mt-2 flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-700">
+                      <AlertTriangle className="h-3 w-3 flex-shrink-0" strokeWidth={1.75} />
+                      <span>Atención: {score.alertaPct}% nivel crítico</span>
+                    </div>
+                  )}
+                  {b.id === 5 && score && score.vetoCount && score.vetoCount > 0 && !hasAlert && (
                     <div className="mt-1 text-xs font-medium text-red-600">
                       {score.vetoed ? 'Coacción crítica' : `${score.vetoCount} alertas de coacción`}
                     </div>
@@ -480,6 +493,37 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
             })}
           </div>
         </div>
+
+        {/* Resumen de alertas "Atención" — impacto en el diagnóstico final */}
+        {alertedBlocks.length > 0 && (
+          <div className="mt-6 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-5">
+            <AlertTriangle className="h-6 w-6 flex-shrink-0 text-amber-600" strokeWidth={1.75} />
+            <div>
+              <p className="font-bold text-amber-800">
+                {alertedBlocks.length} bloque(s) con alerta "Atención" detectada
+              </p>
+              <p className="mt-1 text-sm text-amber-700">
+                Se han identificado bloques donde el {alertedBlocks.map((b) => b.alertaPct).join('%, ')}% de las respuestas
+                se sitúan en el nivel más bajo de la escala. Esto indica áreas críticas que requieren intervención
+                inmediata de RRHH. Los planes de acción estratégicos detallados están disponibles más abajo,
+                desplegables por cada bloque afectado.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {alertedBlocks.map((b) => {
+                  const meta = BLOCKS.find((bl) => bl.id === b.bloque);
+                  return (
+                    <span
+                      key={b.bloque}
+                      className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800"
+                    >
+                      {meta?.short}: {b.alertaPct}% crítico
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Filtro de departamento */}
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -610,47 +654,190 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
           </div>
         ) : null}
 
-        {/* Plan de acción IA */}
-        {deptMeetsMinimum && weakestBlock && (
-          <div className="mt-8 rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-slate-50 p-6">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
-                <Lightbulb className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900">Plan de Acción — Recomendación Automática</h3>
-                <p className="text-xs text-slate-500">Generado a partir del bloque con menor puntuación</p>
-              </div>
-            </div>
+        {/* Plan de acción — Recomendaciones estratégicas expandibles */}
+        {deptMeetsMinimum && weakestBlock && (() => {
+          const alertBlocks = displayScores.filter((s) => s.alertaAtencion);
+          const allPriorityBlocks = [
+            ...alertBlocks,
+            ...(alertBlocks.find((s) => s.bloque === weakestBlock.bloque) ? [] : [weakestBlock]),
+          ].sort((a, b) => a.nota - b.nota);
 
-            <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
-              <p className="text-sm text-slate-500">Área detectada como prioritaria:</p>
-              <div className="mt-2 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-600">
-                    {BLOCK_ICONS[weakestBlock.bloque]}
-                  </span>
-                  <span className="font-semibold text-slate-900">
-                    {BLOCKS.find((b) => b.id === weakestBlock.bloque)?.title}
-                  </span>
+          return (
+            <div className="mt-8 rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-slate-50 p-6">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                  <Lightbulb className="h-5 w-5" />
                 </div>
-                <span className="text-lg font-bold text-red-600">{weakestBlock.nota.toFixed(1)} / 100</span>
+                <div>
+                  <h3 className="font-bold text-slate-900">Planes de Acción Estratégica para RRHH</h3>
+                  <p className="text-xs text-slate-500">
+                    {alertBlocks.length > 0
+                      ? `${alertBlocks.length} bloque(s) en alerta "Atención" + área de menor puntuación`
+                      : 'Generado a partir del bloque con menor puntuación'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                {allPriorityBlocks.map((block) => (
+                  <ActionPlanAccordion
+                    key={block.bloque}
+                    bloque={block.bloque}
+                    nota={block.nota}
+                    alertaPct={block.alertaPct}
+                    alertaAtencion={block.alertaAtencion}
+                  />
+                ))}
               </div>
             </div>
+          );
+        })()}
+      </div>
+    </div>
+  );
+}
 
-            <div className="mt-4 space-y-3">
-              {ACTION_PLANS[weakestBlock.bloque].map((suggestion, idx) => (
-                <div key={idx} className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4">
-                  <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
-                    {idx + 1}
-                  </div>
-                  <p className="text-sm leading-relaxed text-slate-700">{suggestion}</p>
+function ActionPlanAccordion({
+  bloque,
+  nota,
+  alertaPct,
+  alertaAtencion,
+}: {
+  bloque: number;
+  nota: number;
+  alertaPct?: number;
+  alertaAtencion?: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const plan: StructuredActionPlan | undefined = STRUCTURED_ACTION_PLANS[bloque];
+  const blockMeta = BLOCKS.find((b) => b.id === bloque);
+  const info = getNotaColor(nota);
+
+  return (
+    <div className={`overflow-hidden rounded-xl border bg-white transition-shadow ${expanded ? 'shadow-md border-slate-300' : 'border-slate-200'}`}>
+      {/* Header row — always visible */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex w-full items-center justify-between gap-3 p-4 text-left transition hover:bg-slate-50"
+      >
+        <div className="flex items-center gap-3">
+          <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${info.bg} ${info.text}`}>
+            {BLOCK_ICONS[bloque]}
+          </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-slate-900">{blockMeta?.title}</span>
+              {alertaAtencion && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                  <AlertTriangle className="h-3 w-3" strokeWidth={1.75} />
+                  Atención
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500">
+              {alertaAtencion
+                ? `Alerta: ${alertaPct}% de respuestas en nivel crítico`
+                : 'Área de menor puntuación'}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className={`text-lg font-bold ${info.text}`}>{nota.toFixed(1)}</span>
+          <ChevronDown
+            className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+            strokeWidth={1.75}
+          />
+        </div>
+      </button>
+
+      {/* Expandable structured content */}
+      {expanded && plan && (
+        <div className="border-t border-slate-200 p-5 space-y-5">
+          {/* Diagnóstico */}
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-100 text-blue-600">
+                <span className="text-[11px] font-bold">D</span>
+              </div>
+              <h4 className="text-sm font-bold text-slate-900">Diagnóstico e Impacto Organizacional</h4>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">{plan.diagnostico}</p>
+          </div>
+
+          {/* Objetivos 30-60-90 */}
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-100 text-emerald-600">
+                <Target className="h-3.5 w-3.5" strokeWidth={1.75} />
+              </div>
+              <h4 className="text-sm font-bold text-slate-900">Objetivos Estratégicos (30-60-90 días)</h4>
+            </div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              {plan.objetivos.map((obj) => (
+                <div key={obj.horizon} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-xs font-bold text-slate-700">{obj.horizon}</p>
+                  <ul className="mt-2 space-y-1.5">
+                    {obj.metas.map((meta, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-xs leading-relaxed text-slate-600">
+                        <span className="mt-0.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-400" />
+                        {meta}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ))}
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Iniciativas tácticas */}
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-orange-100 text-orange-600">
+                <Lightbulb className="h-3.5 w-3.5" strokeWidth={1.75} />
+              </div>
+              <h4 className="text-sm font-bold text-slate-900">Iniciativas y Acciones Tácticas</h4>
+            </div>
+            <div className="mt-3 space-y-2">
+              {plan.iniciativas.map((iniciativa, i) => (
+                <div key={i} className="flex items-start gap-2.5 rounded-lg border border-slate-200 bg-white p-3">
+                  <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-orange-100 text-[11px] font-bold text-orange-700">
+                    {i + 1}
+                  </span>
+                  <p className="text-sm leading-relaxed text-slate-700">{iniciativa}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* KPIs */}
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-violet-100 text-violet-600">
+                <BarChart3 className="h-3.5 w-3.5" strokeWidth={1.75} />
+              </div>
+              <h4 className="text-sm font-bold text-slate-900">KPIs de Seguimiento</h4>
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {plan.kpis.map((kpi, i) => (
+                <div key={i} className="flex items-start gap-2 rounded-lg bg-violet-50 p-2.5">
+                  <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-violet-500" strokeWidth={1.75} />
+                  <p className="text-xs leading-relaxed text-slate-700">{kpi}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Legacy simplified suggestions for quick reference */}
+          <div className="border-t border-slate-100 pt-4">
+            <p className="text-xs font-medium text-slate-400">Resumen rápido de acciones:</p>
+            <ul className="mt-2 space-y-1">
+              {ACTION_PLANS[bloque].map((s, i) => (
+                <li key={i} className="text-xs leading-relaxed text-slate-500">• {s}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

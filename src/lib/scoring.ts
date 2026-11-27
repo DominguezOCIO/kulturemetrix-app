@@ -8,7 +8,20 @@ export interface BlockScore {
   contador: number;
   vetoCount?: number;
   vetoed?: boolean;
+  alertaAtencion?: boolean;
+  alertaPct?: number;
 }
+
+export interface BlockAlertInfo {
+  bloque: number;
+  totalEncuestas: number;
+  encuestasCriticas: number;
+  pctCritico: number;
+  alerta: boolean;
+}
+
+const ALERT_THRESHOLD_PCT = 10;
+const CRITICAL_AVG_LIKERT = 2.0;
 
 export interface DeptScore extends BlockScore {
   departamento: string;
@@ -80,7 +93,49 @@ export async function submitSurvey(
 const QUESTIONS_PER_BLOCK: Record<number, number> = { 1: 5, 2: 5, 3: 5, 4: 5, 5: 5 };
 
 /**
+ * Obtiene el conteo de respuestas individuales por bloque que caen en nivel crítico
+ * (promedio Likert ≤ 2.0, es decir, block_sum ≤ 2 × num_preguntas).
+ * Devuelve un mapa bloque → { totalEncuestas, encuestasCriticas, pctCritico, alerta }.
+ */
+export async function getBlockAlerts(empresaId: string): Promise<Record<number, BlockAlertInfo>> {
+  const { data, error } = await supabase
+    .from('respuestas')
+    .select('block_1_sum, block_2_sum, block_3_sum, block_4_sum, block_5_sum')
+    .eq('empresa_id', empresaId);
+  if (error || !data || data.length === 0) return {};
+
+  const total = data.length;
+  const result: Record<number, BlockAlertInfo> = {};
+  const blockCols: Record<number, string> = {
+    1: 'block_1_sum',
+    2: 'block_2_sum',
+    3: 'block_3_sum',
+    4: 'block_4_sum',
+    5: 'block_5_sum',
+  };
+
+  for (const bloque of [1, 2, 3, 4, 5]) {
+    const numQ = QUESTIONS_PER_BLOCK[bloque] ?? 5;
+    const criticalThreshold = CRITICAL_AVG_LIKERT * numQ;
+    const encuestasCriticas = data.filter((r) => {
+      const sum = r[blockCols[bloque] as keyof typeof r] as number;
+      return sum != null && sum <= criticalThreshold;
+    }).length;
+    const pctCritico = total > 0 ? (encuestasCriticas / total) * 100 : 0;
+    result[bloque] = {
+      bloque,
+      totalEncuestas: total,
+      encuestasCriticas,
+      pctCritico: Math.round(pctCritico * 10) / 10,
+      alerta: pctCritico >= ALERT_THRESHOLD_PCT,
+    };
+  }
+  return result;
+}
+
+/**
  * Obtiene las puntuaciones agregadas por bloque para toda la empresa.
+ * Incluye detección de alertas "Atención" (≥10% respuestas en nivel crítico).
  */
 export async function getEmpresaBlockScores(empresaId: string): Promise<BlockScore[]> {
   const { data, error } = await supabase
@@ -89,6 +144,8 @@ export async function getEmpresaBlockScores(empresaId: string): Promise<BlockSco
     .eq('empresa_id', empresaId);
   if (error) throw error;
   if (!data || data.length === 0) return [];
+
+  const alertas = await getBlockAlerts(empresaId);
 
   const result: BlockScore[] = [];
   for (const bloque of [1, 2, 3, 4, 5]) {
@@ -101,7 +158,17 @@ export async function getEmpresaBlockScores(empresaId: string): Promise<BlockSco
       const promedio = totalSum / (totalCount * numQuestions);
       const nota = likertTo100(promedio);
       const vetoed = totalVeto / totalCount > 0.10;
-      result.push({ bloque, promedio, nota, contador: totalCount, vetoCount: totalVeto, vetoed });
+      const alertInfo = alertas[bloque];
+      result.push({
+        bloque,
+        promedio,
+        nota,
+        contador: totalCount,
+        vetoCount: totalVeto,
+        vetoed,
+        alertaAtencion: alertInfo?.alerta,
+        alertaPct: alertInfo?.pctCritico,
+      });
     }
   }
   return result;
