@@ -154,6 +154,19 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
   }, [selectedDept, deptScores]);
 
   const allCompleted = trabStats.total > 0 && trabStats.completados >= trabStats.total;
+
+  useEffect(() => {
+    if (!allCompleted && trabStats.total > 0) {
+      const interval = setInterval(() => {
+        loadTrabStats();
+        if (trabStats.completados + 1 >= trabStats.total) {
+          loadData();
+        }
+      }, 15000);
+      return () => clearInterval(interval);
+    }
+  }, [allCompleted, trabStats.total, trabStats.completados]);
+
   const notaGlobal = allCompleted ? empresa.nota_global : 0;
   const notaInfo = getNotaColor(notaGlobal);
   const isCertified = notaGlobal >= CERTIFICATE_THRESHOLD;

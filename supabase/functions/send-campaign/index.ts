@@ -25,7 +25,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { empresa_id, empresa_nombre, app_url } = await req.json();
+    const { empresa_id, empresa_nombre, app_url, only_emails } = await req.json();
 
     if (!empresa_id) {
       return new Response(
@@ -38,7 +38,6 @@ Deno.serve(async (req: Request) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Verify the caller is authenticated and owns this empresa
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace("Bearer ", "");
 
@@ -85,16 +84,11 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Fetch email config from site_config (service_role bypasses RLS)
-    const { data: configData, error: configError } = await adminClient
+    const { data: configData } = await adminClient
       .from("site_config")
       .select("resend_api_key, from_email, from_name")
       .eq("id", 1)
       .maybeSingle();
-
-    if (configError) {
-      console.error("site_config query error:", configError);
-    }
 
     const resendApiKey = configData?.resend_api_key || null;
     const fromEmail = configData?.from_email || "noreply@kulturemetrix.com";
@@ -109,11 +103,20 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Fetch all registered workers for this empresa, joined with their departamento
-    const { data: trabajadores, error: fetchError } = await adminClient
+    let query = adminClient
       .from("trabajadores")
       .select("email, departamento_id, departamentos!inner(nombre)")
       .eq("empresa_id", empresa_id);
+
+    const onlyEmailsLower = only_emails && Array.isArray(only_emails) && only_emails.length > 0
+      ? only_emails.map((e: string) => e.trim().toLowerCase())
+      : null;
+
+    if (onlyEmailsLower) {
+      query = query.in("email", onlyEmailsLower);
+    }
+
+    const { data: trabajadores, error: fetchError } = await query;
 
     if (fetchError) {
       return new Response(
@@ -129,39 +132,58 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Generate an access_code per worker, embedding the departamento_id
     const tokens: { email: string; token: string; departamento: string }[] = [];
     const rowsToInsert: { empresa_id: string; departamento_id: string; email: string; access_code: string }[] = [];
 
     for (const t of trabajadores) {
       const cleanEmail = String(t.email).trim().toLowerCase();
       if (!cleanEmail || !cleanEmail.includes("@")) continue;
-      const accessCode = generateAccessCode();
       const deptName = Array.isArray(t.departamentos) ? t.departamentos[0]?.nombre : t.departamentos?.nombre;
-      tokens.push({ email: cleanEmail, token: accessCode, departamento: deptName || "Sin departamento" });
-      rowsToInsert.push({ empresa_id, departamento_id: t.departamento_id, email: cleanEmail, access_code: accessCode });
+
+      const { data: existingInv } = await adminClient
+        .from("invitaciones")
+        .select("access_code, has_completed")
+        .eq("empresa_id", empresa_id)
+        .eq("email", cleanEmail)
+        .maybeSingle();
+
+      if (existingInv) {
+        if (existingInv.has_completed) continue;
+        tokens.push({ email: cleanEmail, token: existingInv.access_code, departamento: deptName || "Sin departamento" });
+      } else {
+        const accessCode = generateAccessCode();
+        tokens.push({ email: cleanEmail, token: accessCode, departamento: deptName || "Sin departamento" });
+        rowsToInsert.push({ empresa_id, departamento_id: t.departamento_id, email: cleanEmail, access_code: accessCode });
+      }
     }
 
-    if (rowsToInsert.length === 0) {
+    if (rowsToInsert.length > 0) {
+      const { error: insertError } = await adminClient
+        .from("invitaciones")
+        .insert(rowsToInsert);
+
+      if (insertError) {
+        return new Response(
+          JSON.stringify({ error: "Error al generar invitaciones." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    }
+
+    if (tokens.length === 0) {
       return new Response(
-        JSON.stringify({ error: "No se encontraron correos válidos entre los trabajadores." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({
+          success: true,
+          count: 0,
+          sent: 0,
+          failed: 0,
+          email_sent: false,
+          message: "Todos los trabajadores ya han completado la encuesta.",
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // Insert all invitations
-    const { error: insertError } = await adminClient
-      .from("invitaciones")
-      .insert(rowsToInsert);
-
-    if (insertError) {
-      return new Response(
-        JSON.stringify({ error: "Error al generar invitaciones." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    // Build the survey email template once (shared across all workers)
     const buildEmailHtml = (surveyUrl: string) => `
       <div style="font-family: Inter, Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 32px;">
@@ -205,7 +227,6 @@ Deno.serve(async (req: Request) => {
       </div>
     `;
 
-    // Send emails sequentially via Resend, each worker gets their own personalized email
     let sentCount = 0;
     let failedCount = 0;
     const errors: string[] = [];
@@ -249,7 +270,7 @@ Deno.serve(async (req: Request) => {
         count: tokens.length,
         sent: sentCount,
         failed: failedCount,
-        email_sent: true,
+        email_sent: sentCount > 0,
         from_email: fromEmail,
         errors: errors.length > 0 ? errors : undefined,
       }),

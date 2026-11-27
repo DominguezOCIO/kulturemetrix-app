@@ -4,7 +4,7 @@ import {
   DollarSign, Calendar, Mail, Copy, Check, AlertCircle,
   ArrowLeft, ShieldCheck, ShieldAlert, Activity, ChevronRight, Tag, Power,
   Award, BarChart3, PieChart, Target, Lock, KeyRound, Eye, EyeOff,
-  Download, CheckCircle2, Clock, TrendingUp, Wallet, Bot,
+  Download, CheckCircle2, Clock, TrendingUp, Wallet, Bot, Send, Upload,
 } from 'lucide-react';
 import {
   PieChart as RePieChart, Pie, Cell, ResponsiveContainer, Tooltip as ReTooltip,
@@ -20,8 +20,9 @@ import { CampaignPanel } from './CampaignPanel';
 import { AgentsCentralPanel } from './AgentsCentralPanel';
 import type { Empresa } from '@/lib/scoring';
 import { Logo } from './Logo';
-import { fetchDepartamentos, createDepartamento, deleteDepartamento, fetchTrabajadores, toggleDepartamentoCaptacion, fetchTrabajadoresDetalle, updateTrabajadorEmail, deleteTrabajador, getGlobalTrabajadoresStats } from '@/lib/trabajadores';
+import { fetchDepartamentos, createDepartamento, deleteDepartamento, fetchTrabajadores, toggleDepartamentoCaptacion, fetchTrabajadoresDetalle, updateTrabajadorEmail, deleteTrabajador, getGlobalTrabajadoresStats, bulkRegisterTrabajadores, registerTrabajador, fetchTrabajadoresAgrupados, hasActiveCampaign } from '@/lib/trabajadores';
 import type { Departamento, TrabajadorConToken } from '@/lib/trabajadores';
+import { launchCampaign } from '@/lib/campaign';
 import { supabase } from '@/lib/supabase';
 import { setupCompanyAuth, deleteCompanyAuth } from '@/lib/auth';
 
@@ -817,6 +818,16 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
   const [hasAuth, setHasAuth] = useState(false);
   const [viewCredsOpen, setViewCredsOpen] = useState(false);
 
+  const [deptWorkerCounts, setDeptWorkerCounts] = useState<Record<string, number>>({});
+  const [globalWorkerCount, setGlobalWorkerCount] = useState(0);
+  const [campaignActive, setCampaignActive] = useState(false);
+  const [showCampaignConfirm, setShowCampaignConfirm] = useState(false);
+  const [launching, setLaunching] = useState(false);
+  const [launchResult, setLaunchResult] = useState<{ sent: number; failed: number; error?: string } | null>(null);
+  const [manualEmails, setManualEmails] = useState<Record<string, string>>({});
+  const [csvImporting, setCsvImporting] = useState<Record<string, boolean>>({});
+  const [importFeedback, setImportFeedback] = useState<Record<string, { ok: number; dupes: number; errs: string[] } | null>>({});
+
   const empresaForCampaign: Empresa = {
     id: empresa.id, nombre: empresa.nombre, api_key: empresa.api_key,
     estado_suscripcion: empresa.estado_suscripcion, nota_global: empresa.nota_global,
@@ -825,8 +836,22 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
   const loadDepartamentos = async () => {
     setLoadingDepts(true);
     try {
-      const depts = await fetchDepartamentos(empresa.id);
+      const [depts, grouped, active] = await Promise.all([
+        fetchDepartamentos(empresa.id),
+        fetchTrabajadoresAgrupados(empresa.id).catch(() => ({} as Record<string, { email: string; departamento_id: string }[]>)),
+        hasActiveCampaign(empresa.id).catch(() => false),
+      ]);
       setDepartamentos(depts);
+      setCampaignActive(active);
+      const counts: Record<string, number> = {};
+      let total = 0;
+      for (const d of depts) {
+        const cnt = (grouped[d.nombre] || []).length;
+        counts[d.id] = cnt;
+        total += cnt;
+      }
+      setDeptWorkerCounts(counts);
+      setGlobalWorkerCount(total);
     } catch (err) { console.error(err); } finally { setLoadingDepts(false); }
   };
 
@@ -853,7 +878,78 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
     try { await toggleDepartamentoCaptacion(id, !current); await loadDepartamentos(); } catch (err) { console.error(err); }
   };
 
-  const handleCampaignSent = async () => { onStatsChanged(); };
+  const handleCampaignSent = async () => { onStatsChanged(); await loadDepartamentos(); };
+
+  const handleLaunchCampaign = async () => {
+    setLaunching(true);
+    setLaunchResult(null);
+    try {
+      const result = await launchCampaign(empresa.id, empresa.nombre, []);
+      if (result.success) {
+        setLaunchResult({ sent: result.sent || 0, failed: result.failed || 0 });
+        setCampaignActive(true);
+        setShowCampaignConfirm(false);
+        onStatsChanged();
+      } else {
+        setLaunchResult({ sent: 0, failed: 0, error: result.error || 'Error al lanzar la campaña.' });
+      }
+    } catch (err: any) {
+      setLaunchResult({ sent: 0, failed: 0, error: err.message || 'Error de conexión.' });
+    } finally { setLaunching(false); }
+  };
+
+  const handleManualAdd = async (deptId: string) => {
+    const raw = (manualEmails[deptId] || '').trim();
+    if (!raw) return;
+    const emails = raw.split(/[\n,;]+/).map((e) => e.trim()).filter(Boolean);
+    if (emails.length === 0) return;
+    setCsvImporting((p) => ({ ...p, [deptId]: true }));
+    setImportFeedback((p) => ({ ...p, [deptId]: null }));
+    try {
+      if (emails.length === 1) {
+        const res = await registerTrabajador(emails[0], empresa.id, deptId);
+        if (!res.success) {
+          setImportFeedback((p) => ({ ...p, [deptId]: { ok: 0, dupes: 0, errs: [res.error || 'Error'] } }));
+        } else {
+          setImportFeedback((p) => ({ ...p, [deptId]: { ok: 1, dupes: 0, errs: [] } }));
+        }
+      } else {
+        const res = await bulkRegisterTrabajadores(emails, empresa.id, deptId);
+        setImportFeedback((p) => ({ ...p, [deptId]: { ok: res.success, dupes: res.duplicates, errs: res.errors } }));
+      }
+      setManualEmails((p) => ({ ...p, [deptId]: '' }));
+      await loadDepartamentos();
+      onStatsChanged();
+    } catch (err: any) {
+      setImportFeedback((p) => ({ ...p, [deptId]: { ok: 0, dupes: 0, errs: [err.message || 'Error'] } }));
+    } finally {
+      setCsvImporting((p) => ({ ...p, [deptId]: false }));
+    }
+  };
+
+  const handleCsvUpload = async (deptId: string, file: File) => {
+    setCsvImporting((p) => ({ ...p, [deptId]: true }));
+    setImportFeedback((p) => ({ ...p, [deptId]: null }));
+    try {
+      const text = await file.text();
+      const emails = text
+        .split(/[\n,;]+/)
+        .map((line) => line.trim().replace(/^"|"$/g, ''))
+        .filter((e) => e && e.includes('@') && !e.toLowerCase().startsWith('correo') && !e.toLowerCase().startsWith('email'));
+      if (emails.length === 0) {
+        setImportFeedback((p) => ({ ...p, [deptId]: { ok: 0, dupes: 0, errs: ['No se encontraron correos válidos en el archivo.'] } }));
+      } else {
+        const res = await bulkRegisterTrabajadores(emails, empresa.id, deptId);
+        setImportFeedback((p) => ({ ...p, [deptId]: { ok: res.success, dupes: res.duplicates, errs: res.errors } }));
+        await loadDepartamentos();
+        onStatsChanged();
+      }
+    } catch (err: any) {
+      setImportFeedback((p) => ({ ...p, [deptId]: { ok: 0, dupes: 0, errs: [err.message || 'Error al procesar el archivo.'] } }));
+    } finally {
+      setCsvImporting((p) => ({ ...p, [deptId]: false }));
+    }
+  };
 
   const [captacionActiva, setCaptacionActiva] = useState(empresa.captacion_activa ?? false);
   const [toggling, setToggling] = useState(false);
@@ -1012,26 +1108,83 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
           </div>
         </div>
 
-        {/* Department management */}
+        {/* Department management with worker entry */}
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#205072]/10 text-[#205072]"><Tag className="h-5 w-5" /></div>
-            <div><h3 className="font-bold text-slate-900">Configuración de departamentos</h3><p className="text-xs text-slate-500">Crea los departamentos de esta empresa para la segmentación de campañas.</p></div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#205072]/10 text-[#205072]"><Tag className="h-5 w-5" /></div>
+              <div><h3 className="font-bold text-slate-900">Departamentos y trabajadores</h3><p className="text-xs text-slate-500">Crea departamentos y añade los correos de los trabajadores. El envío no se dispara hasta que pulses "Activar y Enviar Campaña".</p></div>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-1.5">
+              <Users className="h-4 w-4 text-slate-500" />
+              <span className="text-sm font-bold text-slate-700">{globalWorkerCount}</span>
+              <span className="text-xs text-slate-500">total</span>
+            </div>
           </div>
           {deptError && (<div className="mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3"><AlertCircle className="h-4 w-4 flex-shrink-0 text-red-600" /><p className="text-sm text-red-700">{deptError}</p></div>)}
           {loadingDepts ? (<div className="mt-5 flex items-center justify-center py-6"><Loader2 className="h-6 w-6 animate-spin text-slate-400" /></div>) : (
             <>
-              <div className="mt-5 space-y-2">
+              <div className="mt-5 space-y-3">
                 {departamentos.length === 0 && (<p className="text-sm text-slate-400">No hay departamentos creados todavía.</p>)}
                 {departamentos.map((dept) => (
-                  <div key={dept.id} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5">
-                    <Tag className={`h-4 w-4 ${dept.captacion_activa ? 'text-[#43B59C]' : 'text-slate-300'}`} />
-                    <span className="flex-1 text-sm font-medium text-slate-700">{dept.nombre}</span>
-                    <span className={`text-[10px] font-bold ${dept.captacion_activa ? 'text-emerald-600' : 'text-slate-400'}`}>{dept.captacion_activa ? 'CAPTACIÓN ON' : 'CAPTACIÓN OFF'}</span>
-                    <button onClick={() => handleToggleDept(dept.id, dept.captacion_activa)} className={`relative inline-flex h-6 w-12 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${dept.captacion_activa ? 'bg-emerald-500' : 'bg-slate-300'}`} title={dept.captacion_activa ? 'Desactivar captación' : 'Activar captación'}>
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-300 ${dept.captacion_activa ? 'translate-x-7' : 'translate-x-1'}`} />
-                    </button>
-                    <button onClick={() => handleDeleteDept(dept.id)} className="rounded p-0.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600" title="Eliminar departamento"><X className="h-4 w-4" /></button>
+                  <div key={dept.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="flex items-center gap-3">
+                      <Tag className={`h-4 w-4 ${dept.captacion_activa ? 'text-[#43B59C]' : 'text-slate-300'}`} />
+                      <span className="flex-1 text-sm font-medium text-slate-700">{dept.nombre}</span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-0.5 text-xs font-bold text-slate-600 border border-slate-200">
+                        <Users className="h-3 w-3 text-slate-400" />
+                        {deptWorkerCounts[dept.id] || 0}
+                      </span>
+                      <span className={`text-[10px] font-bold ${dept.captacion_activa ? 'text-emerald-600' : 'text-slate-400'}`}>{dept.captacion_activa ? 'CAPTACIÓN ON' : 'CAPTACIÓN OFF'}</span>
+                      <button onClick={() => handleToggleDept(dept.id, dept.captacion_activa)} className={`relative inline-flex h-6 w-12 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${dept.captacion_activa ? 'bg-emerald-500' : 'bg-slate-300'}`} title={dept.captacion_activa ? 'Desactivar captación' : 'Activar captación'}>
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-300 ${dept.captacion_activa ? 'translate-x-7' : 'translate-x-1'}`} />
+                      </button>
+                      <button onClick={() => handleDeleteDept(dept.id)} className="rounded p-0.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600" title="Eliminar departamento"><X className="h-4 w-4" /></button>
+                    </div>
+
+                    {/* Worker entry per department */}
+                    <div className="mt-3 space-y-2">
+                      {/* Manual entry */}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={manualEmails[dept.id] || ''}
+                          onChange={(e) => setManualEmails((p) => ({ ...p, [dept.id]: e.target.value }))}
+                          onKeyDown={(e) => { if (e.key === 'Enter' && (manualEmails[dept.id] || '').trim()) { e.preventDefault(); handleManualAdd(dept.id); } }}
+                          placeholder="Correo(s) separados por comas…"
+                          className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-[#43B59C] focus:outline-none focus:ring-2 focus:ring-[#43B59C]/20 transition"
+                        />
+                        <button
+                          onClick={() => handleManualAdd(dept.id)}
+                          disabled={!(manualEmails[dept.id] || '').trim() || csvImporting[dept.id]}
+                          className="flex items-center gap-1.5 rounded-lg bg-[#205072] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#1a3f5e] disabled:opacity-50"
+                        >
+                          {csvImporting[dept.id] ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                          Añadir
+                        </button>
+                      </div>
+
+                      {/* CSV upload */}
+                      <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-dashed border-slate-300 px-3 py-2 text-xs text-slate-500 transition hover:border-[#43B59C] hover:bg-white">
+                        {csvImporting[dept.id] ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                        Subir CSV
+                        <input
+                          type="file"
+                          accept=".csv,.txt"
+                          className="hidden"
+                          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCsvUpload(dept.id, f); e.target.value = ''; }}
+                        />
+                      </label>
+
+                      {/* Import feedback */}
+                      {importFeedback[dept.id] && (
+                        <div className={`rounded-lg px-3 py-2 text-xs ${importFeedback[dept.id]!.errs.length > 0 && importFeedback[dept.id]!.ok === 0 ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                          {importFeedback[dept.id]!.ok > 0 && <span>{importFeedback[dept.id]!.ok} trabajador{importFeedback[dept.id]!.ok !== 1 ? 'es' : ''} añadido{importFeedback[dept.id]!.ok !== 1 ? 's' : ''}. </span>}
+                          {importFeedback[dept.id]!.dupes > 0 && <span>{importFeedback[dept.id]!.dupes} duplicado{importFeedback[dept.id]!.dupes !== 1 ? 's' : ''} ignorado{importFeedback[dept.id]!.dupes !== 1 ? 's' : ''}. </span>}
+                          {importFeedback[dept.id]!.errs.length > 0 && <span>Errores: {importFeedback[dept.id]!.errs.join(', ')}</span>}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1043,10 +1196,69 @@ function EmpresaDetail({ empresa, onBack, onStatsChanged, adminToken }: {
           )}
         </div>
 
+        {/* Activate and send campaign button */}
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${campaignActive ? 'bg-emerald-100' : 'bg-orange-100'}`}>
+                <Send className={`h-5 w-5 transition ${campaignActive ? 'text-emerald-600' : 'text-orange-600'}`} />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900">Activar y Enviar Campaña</h3>
+                <p className="text-xs text-slate-500">
+                  {campaignActive
+                    ? 'La campaña está activa. Los correos ya han sido enviados a todos los trabajadores inscritos.'
+                    : `Al pulsar este botón se enviarán los correos a los ${globalWorkerCount} trabajador${globalWorkerCount !== 1 ? 'es' : ''} inscritos con sus enlaces individuales.`}
+                </p>
+              </div>
+            </div>
+            {!campaignActive && (
+              <button
+                onClick={() => { setLaunchResult(null); setShowCampaignConfirm(true); }}
+                disabled={globalWorkerCount === 0}
+                className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-orange-400 hover:to-red-500 disabled:opacity-50"
+              >
+                <Send className="h-4 w-4" /> Activar y Enviar
+              </button>
+            )}
+          </div>
+          {launchResult && launchResult.error && (
+            <div className="mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-600" />
+              <p className="text-sm text-red-700">{launchResult.error}</p>
+            </div>
+          )}
+        </div>
+
         <TrabajadoresTable empresaId={empresa.id} onStatsChanged={onStatsChanged} />
 
         <div className="mt-6"><CampaignPanel empresa={empresaForCampaign} onSent={handleCampaignSent} /></div>
       </div>
+
+      {/* Campaign launch confirmation modal */}
+      {showCampaignConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
+              <Send className="h-6 w-6 text-orange-600" />
+            </div>
+            <h3 className="mt-4 text-lg font-bold text-slate-900">Confirmar envío de campaña</h3>
+            <p className="mt-2 text-sm text-slate-500">
+              Se enviarán correos electrónicos a <strong className="text-slate-700">{globalWorkerCount} trabajador{globalWorkerCount !== 1 ? 'es' : ''}</strong> de <strong className="text-slate-700">{empresa.nombre}</strong> con sus enlaces individuales de encuesta, asociados a sus departamentos correspondientes.
+            </p>
+            <p className="mt-2 text-xs text-slate-400">Esta acción no se puede deshacer. Cada trabajador recibirá un enlace único e intransferible.</p>
+            {launchResult && launchResult.error && (
+              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2"><p className="text-xs text-red-700">{launchResult.error}</p></div>
+            )}
+            <div className="mt-6 flex justify-end gap-3">
+              <button onClick={() => setShowCampaignConfirm(false)} className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50">Cancelar</button>
+              <button onClick={handleLaunchCampaign} disabled={launching} className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:from-orange-400 hover:to-red-500 disabled:opacity-50">
+                {launching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Confirmar y enviar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Auth setup modal */}
       {authSetupOpen && (

@@ -94,6 +94,39 @@ export async function validateToken(token: string): Promise<TokenValidation> {
   }
 }
 
+export async function resendCampaignEmails(
+  empresaId: string,
+  empresaNombre: string,
+  emails: string[],
+): Promise<CampaignResult> {
+  const appUrl = window.location.origin;
+  const functionUrl = `${SUPABASE_URL}/functions/v1/send-campaign`;
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const authToken = sessionData?.session?.access_token || SUPABASE_ANON_KEY;
+
+  const res = await fetch(functionUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+    body: JSON.stringify({
+      empresa_id: empresaId,
+      empresa_nombre: empresaNombre,
+      app_url: appUrl,
+      only_emails: emails,
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    return { success: false, error: body.error || `Error ${res.status}` };
+  }
+
+  return (await res.json()) as CampaignResult;
+}
+
 export async function getCampaignStats(empresaId: string): Promise<{ total: number; used: number; pending: number }> {
   const { data, error } = await supabase
     .from('invitaciones')

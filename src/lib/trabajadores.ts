@@ -249,6 +249,115 @@ export async function getGlobalTrabajadoresStats(): Promise<{ total: number; com
   return { total, completados, pendientes, participacion };
 }
 
+export interface BulkImportResult {
+  success: number;
+  duplicates: number;
+  errors: string[];
+}
+
+export async function bulkRegisterTrabajadores(
+  emails: string[],
+  empresaId: string,
+  departamentoId: string,
+): Promise<BulkImportResult> {
+  const { data: existing } = await supabase
+    .from('trabajadores')
+    .select('email')
+    .eq('empresa_id', empresaId);
+
+  const existingEmails = new Set((existing || []).map((t) => t.email.toLowerCase()));
+
+  let success = 0;
+  let duplicates = 0;
+  const errors: string[] = [];
+
+  const seen = new Set<string>();
+  for (const raw of emails) {
+    const clean = raw.trim().toLowerCase();
+    if (!clean || !clean.includes('@')) {
+      errors.push(`Correo inválido: "${raw.trim()}"`);
+      continue;
+    }
+    if (seen.has(clean)) {
+      duplicates++;
+      continue;
+    }
+    seen.add(clean);
+    if (existingEmails.has(clean)) {
+      duplicates++;
+      continue;
+    }
+
+    let registered = false;
+    for (let attempt = 0; attempt < 3 && !registered; attempt++) {
+      const codigo_acceso = generateCodigoAcceso();
+      const { error } = await supabase
+        .from('trabajadores')
+        .insert({ email: clean, empresa_id: empresaId, departamento_id: departamentoId, codigo_acceso });
+      if (!error) {
+        success++;
+        registered = true;
+      } else if (error.message.includes('trabajadores_codigo_acceso_unique') || error.message.includes('duplicate key')) {
+        if (attempt === 2) errors.push(`No se pudo generar código único para ${clean}`);
+      } else if (error.message.includes('duplicate') || error.message.includes('unique')) {
+        duplicates++;
+        registered = true;
+      } else {
+        errors.push(`Error al registrar ${clean}`);
+        registered = true;
+      }
+    }
+  }
+
+  return { success, duplicates, errors };
+}
+
+export interface TrabajadorPendiente {
+  id: string;
+  email: string;
+  departamento_nombre: string;
+  has_invitation: boolean;
+}
+
+export async function fetchPendingTrabajadores(empresaId: string): Promise<TrabajadorPendiente[]> {
+  const [trabRes, deptRes, invRes] = await Promise.all([
+    supabase.from('trabajadores').select('id, email, departamento_id').eq('empresa_id', empresaId),
+    supabase.from('departamentos').select('id, nombre').eq('empresa_id', empresaId),
+    supabase.from('invitaciones').select('email, has_completed').eq('empresa_id', empresaId),
+  ]);
+
+  const deptMap: Record<string, string> = {};
+  for (const d of deptRes.data || []) deptMap[d.id] = d.nombre;
+
+  const completedEmails = new Set<string>();
+  const invitedEmails = new Set<string>();
+  for (const inv of invRes.data || []) {
+    if (inv.email) {
+      invitedEmails.add(inv.email.toLowerCase());
+      if (inv.has_completed) completedEmails.add(inv.email.toLowerCase());
+    }
+  }
+
+  return (trabRes.data || [])
+    .filter((t) => !completedEmails.has(t.email.toLowerCase()))
+    .map((t) => ({
+      id: t.id,
+      email: t.email,
+      departamento_nombre: deptMap[t.departamento_id] || 'Sin departamento',
+      has_invitation: invitedEmails.has(t.email.toLowerCase()),
+    }))
+    .sort((a, b) => a.departamento_nombre.localeCompare(b.departamento_nombre) || a.email.localeCompare(b.email));
+}
+
+export async function hasActiveCampaign(empresaId: string): Promise<boolean> {
+  const { count, error } = await supabase
+    .from('invitaciones')
+    .select('*', { count: 'exact', head: true })
+    .eq('empresa_id', empresaId);
+  if (error) return false;
+  return (count || 0) > 0;
+}
+
 export async function registerTrabajador(email: string, empresaId: string, departamentoId: string): Promise<{ success: boolean; error?: string }> {
   const cleanEmail = email.trim().toLowerCase();
   if (!cleanEmail || !cleanEmail.includes('@')) {
