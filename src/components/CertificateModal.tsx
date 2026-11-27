@@ -111,7 +111,7 @@ export function CertificateModal({ empresa, notaGlobal, onClose }: CertificateMo
     doc.setTextColor(148, 163, 184);
     doc.text('Esta insignia Kulturemetrix (uso privado, no oficial) es válida durante el año de emisión.', 148.5, 185, { align: 'center' });
 
-    doc.save(`certificado-bienestar-${empresa.nombre.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+    doc.save(`insignia-bienestar-${empresa.nombre.replace(/\s+/g, '-').toLowerCase()}.pdf`);
   };
 
   return (

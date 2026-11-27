@@ -380,7 +380,7 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
             </div>
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              {/* Certificado / Insignia — solo si aprobada */}
+              {/* Insignia — solo si aprobada */}
               {isCertified ? (
                 <button
                   onClick={() => setShowCertModal(true)}
@@ -390,7 +390,7 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                     <Award className="h-6 w-6 text-white" strokeWidth={1.75} />
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-900">Descargar Certificado / Insignia (PDF)</p>
+                    <p className="font-semibold text-slate-900">Descargar Insignia (PDF)</p>
                     <p className="text-xs text-slate-500">Documento oficial acreditativo con nombre, nota y fecha</p>
                   </div>
                   <Download className="ml-auto h-5 w-5 text-emerald-600" strokeWidth={1.75} />
@@ -401,7 +401,7 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                     <Lock className="h-6 w-6" strokeWidth={1.75} />
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-400">Certificado / Insignia no disponible</p>
+                    <p className="font-semibold text-slate-400">Insignia no disponible</p>
                     <p className="text-xs text-slate-500">No se ha alcanzado la nota mínima de 70 puntos requerida para obtener la insignia</p>
                   </div>
                 </div>
@@ -448,7 +448,7 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
               </div>
             </div>
 
-            {/* Right: certificate or upsell */}
+            {/* Right: insignia or upsell */}
             <div className="w-full lg:flex-1">
               {isCertified ? (
                 <div className="rounded-xl border-2 border-emerald-200 bg-white p-6">
@@ -479,7 +479,7 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                     </div>
                   </div>
 
-                  {/* Progress bar to certification */}
+                  {/* Progress bar to insignia */}
                   <div className="mt-5">
                     <div className="flex items-center justify-between text-xs font-medium text-slate-500">
                       <span>Progreso hacia la insignia Kulturemetrix (uso privado, no oficial)</span>
