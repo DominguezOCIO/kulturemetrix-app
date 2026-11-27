@@ -225,7 +225,7 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
             </div>
             <h2 className="text-3xl font-extrabold text-white sm:text-4xl">¡ENHORABUENA, APROBASTE!</h2>
             <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-emerald-50 sm:text-lg">
-              Tu <strong className="font-bold text-white">CERTIFICADO KULTUREMETRIX</strong> ya está en marcha. Tus trabajadores te han transmitido que se sienten en un entorno corporativo óptimo, favorable y que cuida su bienestar laboral. ¡Sigue así! En 12 meses volvemos a medir el estado general del mayor valor que posees, El humano. KULTUREMETRIX te enviará el certificado oficial a través de los canales correspondientes.
+              Tu <strong className="font-bold text-white">INSIGNIA KULTUREMETRIX</strong> ya está en marcha. Tus trabajadores te han transmitido que se sienten en un entorno corporativo óptimo, favorable y que cuida su bienestar laboral. ¡Sigue así! En 12 meses volvemos a medir el estado general del mayor valor que posees, El humano. KULTUREMETRIX te enviará la insignia Kulturemetrix oficial a través de los canales correspondientes.
             </p>
           </div>
         )}
@@ -360,7 +360,7 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                     <ShieldAlert className="h-5 w-5 text-red-600" />
                   )}
                   <span className={`text-sm font-semibold ${notaInfo.text}`}>
-                    Umbral de certificación: {CERTIFICATE_THRESHOLD} pts
+                    Umbral de la insignia Kulturemetrix: {CERTIFICATE_THRESHOLD} pts
                   </span>
                 </div>
               </div>
@@ -375,7 +375,7 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                       <Trophy className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900">¡Empresa Certificada!</h3>
+                      <h3 className="text-lg font-bold text-slate-900">¡Empresa con Insignia Kulturemetrix!</h3>
                       <p className="text-sm text-slate-500">
                         Has superado el umbral de {CERTIFICATE_THRESHOLD} puntos. Tu organización demuestra un nivel de bienestar laboral ejemplar.
                       </p>
@@ -389,10 +389,10 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                       <Target className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900">Aún no alcanzas la certificación</h3>
+                      <h3 className="text-lg font-bold text-slate-900">Aún no alcanzas la insignia Kulturemetrix</h3>
                       <p className="text-sm text-slate-500">
                         Tu puntuación final es de <span className="font-bold text-slate-700">{notaGlobal.toFixed(1)} / 100</span>.
-                        Necesitas al menos <span className="font-bold text-emerald-600">{CERTIFICATE_THRESHOLD} puntos</span> para obtener el Certificado Oficial de Bienestar Corporativo.
+                        Necesitas al menos <span className="font-bold text-emerald-600">{CERTIFICATE_THRESHOLD} puntos</span> para obtener la Insignia Kulturemetrix Oficial de Bienestar Corporativo.
                       </p>
                     </div>
                   </div>
@@ -400,7 +400,7 @@ export function Dashboard({ empresa, onBack }: DashboardProps) {
                   {/* Progress bar to certification */}
                   <div className="mt-5">
                     <div className="flex items-center justify-between text-xs font-medium text-slate-500">
-                      <span>Progreso hacia la certificación</span>
+                      <span>Progreso hacia la insignia Kulturemetrix</span>
                       <span>{Math.min(100, Math.round((notaGlobal / CERTIFICATE_THRESHOLD) * 100))}%</span>
                     </div>
                     <div className="mt-2 h-3 overflow-hidden rounded-full bg-slate-100">

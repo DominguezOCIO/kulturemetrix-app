@@ -87,12 +87,12 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
             </div>
 
             <h1 className="text-3xl font-bold uppercase tracking-tight text-white sm:text-4xl lg:text-5xl">
-              Nuestro Certificado de
+              Nuestra Insignia Kulturemetrix de
               <span className="block bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">Bienestar Corporativo</span>
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-base leading-relaxed text-slate-300/90 sm:text-lg">
-              Inspirado en la rigurosidad e independencia de las <span className="font-semibold text-orange-300">Estrellas Michelin</span>. KultureMetrix evalúa el entorno laboral de manera <span className="font-semibold text-white">100% ajena a la dirección de la empresa</span>. Nuestro certificado <span className="font-semibold text-white">no se puede comprar</span> con presupuestos de marketing; <span className="font-semibold text-orange-300">se merece</span>. Nuestro valor reside en ofrecer una visión clara, transparente y real de la cultura corporativa a través de una auditoría implacable que blinda el anonimato del empleado y premia a las organizaciones humanas.
+              Inspirado en la rigurosidad e independencia de las <span className="font-semibold text-orange-300">Estrellas Michelin</span>. KultureMetrix evalúa el entorno laboral de manera <span className="font-semibold text-white">100% ajena a la dirección de la empresa</span>. Nuestra insignia Kulturemetrix <span className="font-semibold text-white">no se puede comprar</span> con presupuestos de marketing; <span className="font-semibold text-orange-300">se merece</span>. Nuestro valor reside en ofrecer una visión clara, transparente y real de la cultura corporativa a través de una auditoría implacable que blinda el anonimato del empleado y premia a las organizaciones humanas.
             </p>
 
             {/* Pillars row */}
@@ -241,7 +241,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
           <div className="grid gap-6 sm:grid-cols-3">
             <FeatureRow icon={<BarChart3 className="h-5 w-5" />} title="Dashboard analítico" desc="KPIs en tiempo real por departamento y bloque temático." />
             <FeatureRow icon={<ShieldCheck className="h-5 w-5" />} title="Privacidad desde el diseño" desc="100% anónimo. Cumple RGPD. Sin datos individuales." />
-            <FeatureRow icon={<FileCheck className="h-5 w-5" />} title="Certificado de Bienestar" desc="Descarga un certificado verificable al alcanzar 70+ puntos sobre 100." />
+            <FeatureRow icon={<FileCheck className="h-5 w-5" />} title="Insignia Kulturemetrix de Bienestar" desc="Descarga una insignia Kulturemetrix verificable al alcanzar 70+ puntos sobre 100." />
           </div>
         </div>
       </div>
@@ -257,7 +257,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
               CÓMO FUNCIONA
             </h2>
             <p className="mt-5 text-base leading-relaxed text-slate-500 sm:text-lg">
-              Del acceso al panel a la certificación oficial: cuatro pasos para transformar el bienestar de tu organización en una ventaja medible.
+              Del acceso al panel a la insignia Kulturemetrix oficial: cuatro pasos para transformar el bienestar de tu organización en una ventaja medible.
             </p>
           </div>
 
@@ -287,8 +287,8 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
             <HowItWorksStep
               number="04"
               icon={<Award className="h-6 w-6" strokeWidth={1.75} />}
-              title="Certificación oficial e informe PDF"
-              description="Si la organización alcanza una puntuación mínima de 70/100, podrás descargar automáticamente desde tu panel nuestro Certificado Oficial, junto con un informe completo en PDF con todas las métricas obtenidas y los planes de acción a implementar."
+              title="Insignia Kulturemetrix oficial e informe PDF"
+              description="Si la organización alcanza una puntuación mínima de 70/100, podrás descargar automáticamente desde tu panel nuestra Insignia Kulturemetrix Oficial, junto con un informe completo en PDF con todas las métricas obtenidas y los planes de acción a implementar."
             />
           </div>
         </div>
@@ -310,7 +310,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
 
           {/* Intro */}
           <p className="mt-6 text-center text-base leading-relaxed text-slate-500 sm:text-lg">
-            El acceso al <span className="font-bold text-[#205072]">CERTIFICADO KULTUREMETRIX</span> está sujeto a un estricto proceso de evaluación diseñado bajo un principio de convocatoria única anual:
+            El acceso al <span className="font-bold text-[#205072]">INSIGNIA KULTUREMETRIX</span> está sujeto a un estricto proceso de evaluación diseñado bajo un principio de convocatoria única anual:
           </p>
 
           {/* Conditions grid */}
@@ -333,7 +333,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
               </div>
               <h3 className="mt-4 text-base font-bold text-[#205072]">Emisión y Renovación</h3>
               <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                Las compañías que alcancen la puntuación requerida obtendrán el <span className="font-bold text-[#205072]">CERTIFICADO ANUAL</span>, el cual tendrá validez por 12 meses. La renovación del distintivo requerirá superar una nueva auditoría desde cero al cumplirse el año de su fecha de alta.
+                Las compañías que alcancen la puntuación requerida obtendrán la <span className="font-bold text-[#205072]">INSIGNIA KULTUREMETRIX ANUAL</span>, el cual tendrá validez por 12 meses. La renovación del distintivo requerirá superar una nueva auditoría desde cero al cumplirse el año de su fecha de alta.
               </p>
             </div>
 
@@ -390,7 +390,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
                 'Cobertura completa: Auditoría para hasta 49 trabajadores.',
                 'Tests automatizados: Medición rápida de 5 minutos sin interrumpir la operativa diaria.',
                 'Panel de control: Métricas globales y segmentadas por departamento, indicadores de bienestar y alertas tempranas de riesgo de burnout.',
-                'Certificación oficial: Derecho de uso del Sello KultureMetrix (sujeto a superar los estándares de la auditoría).',
+                'Insignia Kulturemetrix oficial: Derecho de uso del Sello KultureMetrix (sujeto a superar los estándares de la auditoría).',
               ]}
               cta="Contactar para Auditoría"
               featured={false}
@@ -467,13 +467,13 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
 
           {/* Body text */}
           <p className="mx-auto mt-8 max-w-3xl text-base leading-relaxed text-slate-300/90 sm:text-lg">
-            Impulse la visibilidad y el prestigio de su organización a través del rigor de KULTUREMETRIX. Las compañías que superen con éxito nuestros estándares y obtengan nuestro exclusivo <span className="font-bold text-[#43B59C]">CERTIFICADO</span>, formarán parte de un prestigioso ranking anual. Esta clasificación se proyectará estratégicamente en espacios editoriales y medios de comunicación de referencia, consolidando su posicionamiento como un claro referente en el <span className="font-bold text-[#43B59C]">RANKING DE LAS EMPRESAS DE BIENESTAR CORPORATIVO</span>.
+            Impulse la visibilidad y el prestigio de su organización a través del rigor de KULTUREMETRIX. Las compañías que superen con éxito nuestros estándares y obtengan nuestra exclusiva <span className="font-bold text-[#43B59C]">INSIGNIA KULTUREMETRIX</span>, formarán parte de un prestigioso ranking anual. Esta clasificación se proyectará estratégicamente en espacios editoriales y medios de comunicación de referencia, consolidando su posicionamiento como un claro referente en el <span className="font-bold text-[#43B59C]">RANKING DE LAS EMPRESAS DE BIENESTAR CORPORATIVO</span>.
           </p>
 
           {/* CTA button */}
-          <button onClick={openAuditModal} className="mt-10 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#205072] to-[#43B59C] px-8 py-4 text-base font-bold text-white shadow-lg shadow-[#43B59C]/20 transition-all duration-200 hover:shadow-xl hover:shadow-[#43B59C]/30 hover:brightness-110 hover:from-[#1a4060] hover:to-[#3aa588]">
+          <button onClick={openAuditModal} className="mt-10 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#205072] to-[#43B59C] px-6 py-4 text-sm font-bold text-white shadow-lg shadow-[#43B59C]/20 transition-all duration-200 hover:shadow-xl hover:shadow-[#43B59C]/30 hover:brightness-110 hover:from-[#1a4060] hover:to-[#3aa588]">
             <Radio className="h-5 w-5" strokeWidth={1.75} />
-            Iniciar Certificación
+            Iniciar Insignia Kulturemetrix
             <ArrowRight className="h-5 w-5" />
           </button>
         </div>
@@ -581,7 +581,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
             <div className="hidden h-4 w-px bg-slate-600 sm:block" />
             <div className="flex items-center gap-2">
               <Award className="h-4 w-4 text-orange-400" strokeWidth={1.75} />
-              <span className="text-sm font-medium text-slate-300/90">Certificado ANUAL</span>
+              <span className="text-sm font-medium text-slate-300/90">Insignia Kulturemetrix</span>
             </div>
           </div>
         </div>
@@ -597,7 +597,7 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
             </div>
             <h2 className="mt-6 text-4xl font-bold tracking-tight text-[#205072] sm:text-5xl">Preguntas frecuentes</h2>
             <p className="mt-4 text-lg leading-relaxed text-slate-500">
-              Conoce cómo protegemos los datos, cómo funciona la auditoría y qué valor aporta la certificación KULTUREMETRIX.
+              Conoce cómo protegemos los datos, cómo funciona la auditoría y qué valor aporta la insignia Kulturemetrix.
             </p>
           </div>
 
@@ -691,15 +691,15 @@ const FAQ_SECTIONS = [
     ],
   },
   {
-    title: 'Certificados y Valor de Mercado',
+    title: 'Insignias y Valor de Mercado',
     icon: Award,
     questions: [
       {
-        question: '¿Qué es el Certificado de Bienestar Corporativo de KULTUREMETRIX?',
+        question: '¿Qué es la Insignia Kulturemetrix de Bienestar Corporativo?',
         answer: 'Es un distintivo oficial de calidad emitido por nuestra entidad externa que avala que una empresa cumple con estándares óptimos de salud organizacional y bienestar humano tras superar la auditoría correspondiente.',
       },
       {
-        question: '¿Cómo se obtiene el certificado?',
+        question: '¿Cómo se obtiene la insignia Kulturemetrix?',
         answer: 'Una vez acabada la auditoría con las respuestas recibidas de manera anónima de todos los test por parte de tu equipo, y obteniendo la puntuación de 70/100 en adelante. Se requiere ser una empresa notable cuidando el bienestar corporativo.',
       },
       {
@@ -711,7 +711,7 @@ const FAQ_SECTIONS = [
         answer: 'La auditoría externa reduce los sesgos internos y genera confianza real en los empleados, quienes pueden expresarse con mayor honestidad al saber que sus datos están protegidos por una entidad neutral y especializada.',
       },
       {
-        question: '¿Cómo beneficia esta certificación a la atracción de talento?',
+        question: '¿Cómo beneficia esta insignia Kulturemetrix a la atracción de talento?',
         answer: 'El sello de KULTUREMETRIX funciona como una herramienta de Employer Branding que demuestra de forma transparente el compromiso real de la empresa con el cuidado de sus equipos, ayudando a atraer y retener talento.',
       },
     ],

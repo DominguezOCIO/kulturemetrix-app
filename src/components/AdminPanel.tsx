@@ -43,7 +43,7 @@ const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
 
 const AUDIT_ESTADO = {
   auditando: { label: 'AUDITANDO', color: 'bg-slate-200 text-slate-700' },
-  certificada: { label: 'CERTIFICADA', color: 'bg-emerald-500 text-white' },
+  certificada: { label: 'CON INSIGNIA', color: 'bg-emerald-500 text-white' },
   fallida: { label: 'FALLIDA', color: 'bg-red-500 text-white' },
 };
 
@@ -292,8 +292,8 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
   }, [regionFilteredEmpresas, statsCache]);
 
   const pieData = [
-    { name: 'Certificadas (≥70)', value: annualStats.totalCertificadas, color: '#059669' },
-    { name: 'No certificadas (<70)', value: annualStats.totalConEncuestas - annualStats.totalCertificadas, color: '#f59e0b' },
+    { name: 'Con insignia (≥70)', value: annualStats.totalCertificadas, color: '#059669' },
+    { name: 'Sin insignia (<70)', value: annualStats.totalConEncuestas - annualStats.totalCertificadas, color: '#f59e0b' },
   ];
   const handleCopyKey = (key: string) => {
     navigator.clipboard.writeText(key);
@@ -465,13 +465,13 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
               ))}
             </div>
           </div>
-          <p className="mt-1 text-sm text-slate-500">Resumen del rendimiento del proceso de auditoría y certificación.</p>
+          <p className="mt-1 text-sm text-slate-500">Resumen del rendimiento del proceso de auditoría y concesión de insignia Kulturemetrix.</p>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <div className="space-y-4">
               <AnnualKpiRow icon={<Building2 className="h-5 w-5" />} label="Empresas dadas de alta" value={annualStats.totalAltas} color="text-slate-700 bg-slate-100" />
               <AnnualKpiRow icon={<Target className="h-5 w-5" />} label="Empresas que realizaron la auditoría" value={annualStats.totalConEncuestas} color="text-blue-700 bg-blue-100" />
-              <AnnualKpiRow icon={<Award className="h-5 w-5" />} label="Empresas certificadas (≥70 pts)" value={annualStats.totalCertificadas} color="text-emerald-700 bg-emerald-100" />
+              <AnnualKpiRow icon={<Award className="h-5 w-5" />} label="Empresas con insignia (≥70 pts)" value={annualStats.totalCertificadas} color="text-emerald-700 bg-emerald-100" />
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
@@ -479,7 +479,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
                 <PieChart className="h-5 w-5 text-emerald-600" />
                 <h3 className="font-bold text-slate-900">Tasa de Éxito Anual</h3>
               </div>
-              <p className="mt-1 text-xs text-slate-500">Empresas certificadas vs. total auditadas</p>
+              <p className="mt-1 text-xs text-slate-500">Empresas con insignia vs. total auditadas</p>
               <div className="mt-3 h-48">
                 {annualStats.totalConEncuestas > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
@@ -501,11 +501,11 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
               <div className="mt-3 flex items-center justify-center gap-4 text-xs">
                 <div className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-600" />
-                  <span className="text-slate-600">Certificadas ({annualStats.totalCertificadas})</span>
+                  <span className="text-slate-600">Con insignia ({annualStats.totalCertificadas})</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-                  <span className="text-slate-600">No certificadas ({annualStats.totalConEncuestas - annualStats.totalCertificadas})</span>
+                  <span className="text-slate-600">Sin insignia ({annualStats.totalConEncuestas - annualStats.totalCertificadas})</span>
                 </div>
               </div>
             </div>
@@ -559,7 +559,7 @@ function AdminList({ onBack, adminToken }: { onBack: () => void; adminToken: str
                               onClick={() => handleAddCertEnvio(emp)}
                               disabled={envioEmpresaIds.has(emp.id) || certBusyId === emp.id}
                               className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold transition ${envioEmpresaIds.has(emp.id) ? 'bg-slate-100 text-slate-400 cursor-default' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
-                              title={envioEmpresaIds.has(emp.id) ? 'Ya en el listado de envío' : 'Enviar a listado de certificados'}
+                              title={envioEmpresaIds.has(emp.id) ? 'Ya en el listado de envío' : 'Enviar a listado de insignias'}
                             >
                               {certBusyId === emp.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
                               {auditEstado.label}
@@ -1538,8 +1538,8 @@ function CertificateEnviosPanel({ envios, onMarkEnviado, busyId }: {
           <Award className="h-5 w-5" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-slate-900">Enviar Certificado</h2>
-          <p className="text-xs text-slate-500">Empresas certificadas pendientes de envío. Al marcar como ENVIADO pasan al final del listado.</p>
+          <h2 className="text-lg font-bold text-slate-900">Enviar Insignia Kulturemetrix</h2>
+          <p className="text-xs text-slate-500">Empresas con insignia pendientes de envío. Al marcar como ENVIADO pasan al final del listado.</p>
         </div>
       </div>
 
@@ -1547,7 +1547,7 @@ function CertificateEnviosPanel({ envios, onMarkEnviado, busyId }: {
         <div className="py-12 text-center">
           <Award className="mx-auto h-9 w-9 text-slate-300" />
           <h3 className="mt-3 font-semibold text-slate-700">No hay empresas en el listado</h3>
-          <p className="mt-1 text-sm text-slate-500">Las empresas certificadas aparecerán aquí al hacer clic en su etiqueta CERTIFICADA.</p>
+          <p className="mt-1 text-sm text-slate-500">Las empresas con insignia aparecerán aquí al hacer clic en su etiqueta CON INSIGNIA.</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
