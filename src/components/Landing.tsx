@@ -294,6 +294,50 @@ export function Landing({ onEnter, onWorkerToken, onAdminClick, externalError }:
         </div>
       </section>
 
+      {/* Sección: Metodología */}
+      <section id="metodologia-scoring" className="bg-white py-20 px-6 border-b border-slate-100">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto max-w-3xl text-center">
+            <span className="text-xs font-bold tracking-widest text-[#43B59C] uppercase bg-[#43B59C]/10 px-3 py-1 rounded-full border border-[#43B59C]/20">
+              Rigor técnico y transparencia
+            </span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-[#205072] mt-4 tracking-tight">
+              METODOLOGÍA
+            </h2>
+            <p className="mt-5 text-base leading-relaxed text-slate-500 sm:text-lg">
+              Cómo evaluamos las respuestas de tu equipo: desde el origen de las preguntas hasta la nota final, un proceso diseñado para aportar rigor, transparencia y respaldo profesional a cada diagnóstico.
+            </p>
+          </div>
+
+          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <HowItWorksStep
+              number="01"
+              icon={<ShieldCheck className="h-6 w-6" strokeWidth={1.75} />}
+              title="Origen y rigor de las preguntas"
+              description="Cada bloque de preguntas se fundamenta en criterios técnicos reconocidos: la escala Likert de 5 niveles (estándar en investigación social), los principios de prevención de riesgos psicosociales de la OMS y la ISO 45003, y las buenas prácticas en clima laboral publicadas por organismos de RRHH internacionales. Esto garantiza que cada pregunta mida un factor real y relevante."
+            />
+            <HowItWorksStep
+              number="02"
+              icon={<BarChart3 className="h-6 w-6" strokeWidth={1.75} />}
+              title="Estructura por bloques temáticos"
+              description="El cuestionario se organiza en 5 bloques independientes: (1) Gestión del Tiempo y Desconexión, (2) Carga de Trabajo y Salud Mental, (3) Clima Laboral y Liderazgo, (4) Reconocimiento y Crecimiento, y (5) Auditoría Cualitativa Cultural. Cada bloque evalúa una dimensión específica del bienestar para ofrecer un diagnóstico preciso por área, no una impresión general."
+            />
+            <HowItWorksStep
+              number="03"
+              icon={<Cpu className="h-6 w-6" strokeWidth={1.75} />}
+              title="Cálculo de la puntuación"
+              description="Cada respuesta se valora de 1 (totalmente en desacuerdo) a 5 (totalmente de acuerdo). Dentro de cada bloque, las 5 preguntas se promedian para obtener una nota de 1 a 5, que se convierte a una escala de 0 a 100 mediante la fórmula: ((promedio − 1) ÷ 4) × 100. Los 4 bloques cuantitativos pesan por igual, y el bloque 5 actúa como validación cualitativa cruzada."
+            />
+            <HowItWorksStep
+              number="04"
+              icon={<Award className="h-6 w-6" strokeWidth={1.75} />}
+              title="De los bloques a la nota final"
+              description="La nota global se calcula promediando los 4 bloques cuantitativos. Si el bloque 5 revela una discrepancia significativa con los bloques 1-4, se aplica una penalización proporcional para reflejar la realidad cultural. La nota definitiva sobre 100 determina el resultado: 70 o más puntos significa que la organización alcanza la Insignia Kulturemetrix (uso privado, no oficial)."
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Sección: Condiciones de la Convocatoria */}
       <section id="convocatoria" className="bg-white py-20 border-t border-b border-slate-100">
         <div className="mx-auto max-w-4xl px-6">
